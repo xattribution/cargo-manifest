@@ -1,0 +1,13 @@
+# One-command self-host:  docker compose up -d   → http://localhost:8080
+# Build context is the repo root (..) so the build can read the baseline /data CSVs;
+# the Dockerfile lives in this folder.
+services:
+  cargo-manifest:
+    build:
+      context: ..
+      dockerfile: webapp/Dockerfile
+    image: cargo-manifest-webapp:latest
+    container_name: cargo-manifest
+    ports:
+      - "8080:80"
+    restart: unless-stopped

@@ -1,0 +1,6 @@
+# This file is consulted with build context = repo root.
+**/node_modules
+**/dist
+webapp/public/data
+.git
+*.log

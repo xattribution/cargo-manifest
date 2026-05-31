@@ -1,0 +1,101 @@
+// Crate packing + aggregation. Faithful port of the breakdown/aggregate logic.
+// Greedy largest-first cascade over the enabled sizes — intentionally NOT an optimal
+// bin-packer, matching the original spreadsheet behaviour (ARCHITECTURE.md §4).
+import type { Item, SizeMap, Trip } from './types';
+
+export const ALL_SIZES = [32, 24, 16, 8, 4, 2, 1];
+
+export const allSizesOn = (): SizeMap => ({ 32: true, 24: true, 16: true, 8: true, 4: true, 2: true, 1: true });
+
+export function enabledDesc(sizes: SizeMap): number[] {
+  return ALL_SIZES.filter((s) => sizes[s]);
+}
+
+export interface Breakdown {
+  counts: Record<number, number>;
+  leftover: number;
+}
+
+export function breakdown(scu: number | string, sizes: SizeMap): Breakdown {
+  let rem = Math.max(0, Math.floor(Number(scu) || 0));
+  const counts: Record<number, number> = {};
+  for (const s of enabledDesc(sizes)) {
+    const n = Math.floor(rem / s);
+    if (n > 0) { counts[s] = n; rem -= n * s; }
+  }
+  return { counts, leftover: rem };
+}
+
+export function crateCount(c: Record<number, number>): number {
+  return Object.values(c).reduce((a, b) => a + b, 0);
+}
+
+export interface Aggregate {
+  totals: Record<number, number>;
+  scu: number;
+  leftover: number;
+  crates: number;
+}
+
+export interface Entry {
+  it: Item;
+  sizes: SizeMap;
+}
+
+// Each commodity packs into its own crates — two goods never share a box — so we sum
+// per-item breakdowns rather than packing the combined SCU.
+export function aggregate(entries: Entry[]): Aggregate {
+  const totals: Record<number, number> = {};
+  let scu = 0;
+  let leftover = 0;
+  for (const { it, sizes } of entries) {
+    const v = Math.max(0, Math.floor(Number(it.scu) || 0));
+    scu += v;
+    const bd = breakdown(v, sizes);
+    leftover += bd.leftover;
+    for (const s in bd.counts) totals[+s] = (totals[+s] || 0) + bd.counts[+s];
+  }
+  return { totals, scu, leftover, crates: crateCount(totals) };
+}
+
+export function flatEntries(sections: Trip[]): Entry[] {
+  const out: Entry[] = [];
+  for (const sec of sections) for (const it of sec.items) out.push({ it, sizes: sec.sizes });
+  return out;
+}
+
+export function runTotal(sections: Trip[]): number {
+  return aggregate(flatEntries(sections)).scu;
+}
+
+export interface TripScu { name: string; scu: number; }
+
+export function tripScus(sections: Trip[]): TripScu[] {
+  return sections.map((sec) => ({
+    name: sec.name || 'Trip',
+    scu: aggregate(sec.items.map((it) => ({ it, sizes: sec.sizes }))).scu,
+  }));
+}
+
+export interface FitTarget { scu: number; label: string; detail: string; }
+
+export function fitTarget(sections: Trip[], fitMode: 'largest' | 'combined'): FitTarget {
+  if (fitMode === 'combined') return { scu: runTotal(sections), label: 'combined total', detail: '' };
+  const ts = tripScus(sections).filter((t) => t.scu > 0);
+  if (!ts.length) return { scu: 0, label: 'largest trip', detail: '' };
+  const top = ts.reduce((m, x) => (x.scu > m.scu ? x : m), ts[0]);
+  return { scu: top.scu, label: 'largest trip', detail: top.name };
+}
+
+// Group flat entries by a field (destination/source) → Map<key, Entry[]>
+export function groupEntries(sections: Trip[], field: 'destination' | 'source'): Map<string, Entry[]> {
+  const map = new Map<string, Entry[]>();
+  for (const sec of sections) {
+    for (const it of sec.items) {
+      const key = (it[field] || '').trim() || '(unassigned)';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push({ it, sizes: sec.sizes });
+    }
+  }
+  return map;
+}

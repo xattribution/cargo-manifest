@@ -1,0 +1,99 @@
+# Webapp — Feature Parity & Decision Log
+
+Tracks the Docker-hosted **webapp** rewrite (Svelte 5 + Vite + TS) against the original
+single-file self-host app (`../cargo-manager.html`, documented in `../README.md` and
+`../ARCHITECTURE.md`). When a behaviour is unclear, the single-file app is the reference.
+
+**Legend:** ✅ done · 🟡 in progress · ⛔ intentionally dropped (with reason) · 🔵 changed by design · ⬜ not started
+
+---
+
+## Architecture decisions
+
+| Decision | Choice | Why |
+|---|---|---|
+| Framework | **Svelte 5 (runes) + Vite + TypeScript** | Compiles away to a tiny bundle (no VDOM runtime) → snappy; TS gives the data model real types. |
+| Runtime | **Static files behind `nginx:alpine`** | No backend, no DB → user data *structurally* cannot be stored server-side. |
+| Storage | **Hybrid: server baseline + localStorage delta** | Baseline catalog (CSVs) is served read-only; only the user's *delta* (owned ships + added entries) and the run live in the browser. Tiny footprint; baseline patches flow through; nothing leaves the browser. |
+| Cookies | **Not used for data** | ~4 KB cap can't hold the catalog and cookies are sent to the server every request — both fight the requirements. localStorage is the correct fit. |
+| Default data | **Single source of truth = repo-root `/data/*.csv`** | `scripts/sync-data.mjs` copies them into `public/data/` at dev/build time; `public/data` is gitignored (generated). No drift with the self-host version. |
+| Core logic | **Ported verbatim where possible** | `csv.ts`, `crate.ts`, `mission.ts` are line-for-line ports of the proven algorithms so packing/colour behaviour is identical. |
+
+### Storage model (detail)
+```
+localStorage["cargo:webapp:run"]   = RunState         (trips, items, view settings)
+localStorage["cargo:webapp:delta"] = CatalogDelta {
+  shipsOwned:       { [lowerName]: { name, cap|null, added } }   // presence = owned; cap null = use baseline
+  commoditiesAdded: CatalogRow[]                                  // user-added only
+  locationsAdded:   CatalogRow[]                                  // user-added only
+}
+```
+Materialized catalog = baseline ⟕ delta. "Clear data & load defaults" removes both keys.
+
+---
+
+## Feature parity checklist
+
+### Core data / persistence
+- ✅ CSV parse/serialize (quote-aware, CRLF, BOM) — `lib/csv.ts`
+- ✅ Crate packing (greedy largest-first cascade) + aggregation — `lib/crate.ts`
+- ✅ Mission colours + contrast FG — `lib/mission.ts`
+- ✅ Hybrid baseline+delta catalog model — `lib/catalog.ts`
+- ✅ localStorage run + delta persistence, clear-all — `lib/storage.ts`
+- ✅ Run state reactive store + debounced autosave — `stores/run.svelte.ts` + `App.svelte` effect
+- ✅ Catalog reactive store (materialized $derived views, mutations write delta) — `stores/catalog.svelte.ts`
+- ✅ Migration of legacy run shape (single-list `{items,sizes}` → sections) on Import — `migrate()`
+
+### Planner UI (Trips)
+- ✅ Trips: add / rename / remove (keep ≥1), live subtotal
+- ✅ Per-trip crate-size toggles (32…1)
+- ✅ Item rows: mission #, commodity, SCU, from, to, per-size cells, crates, done, delete
+- ✅ Per-row mission colouring + auto text contrast
+- ✅ Datalist autocomplete (commodity/location/ship) + novelty "+" to add to catalog
+- ✅ Column sort (M/Commodity/SCU/From/To)
+- ✅ Drag-to-reorder rows (desktop, HTML5 DnD) — clears column sort like the original
+- 🟡 **Column resize** (Commodity/From/To) — widths render from `state.colW` but the drag handle isn't wired yet → **phase 2**
+- 🟡 **Touch drag-reorder** — desktop works; pointer-event/touch variant is **phase 2**
+
+### Read-outs
+- ✅ Loadout Summary (totals, per-size chips, leftover warning)
+- ✅ What To Drop Off / Pick Up — grouped cards, collapsible
+- ✅ Bidirectional completion (item ↔ card; card checkbox indeterminate state)
+- ✅ Ship Fit Check (owned ships, best-fit pin, largest-trip/combined toggle, sort, add/edit/remove)
+- ✅ Copy Summary Text
+
+### Top bar / data controls
+- ✅ Run name, Export Run / Import Run (JSON)
+- 🔵 **Clear** → "Clear my data & load defaults" (wipes run + delta, reloads baseline) — *expanded per request; also surfaced in the data bar*
+- ✅ Export CSVs (download materialized catalog)
+- ✅ Privacy/status line ("your data stays in this browser — nothing is sent to the server")
+- ⛔ **Connect data folder** (File System Access write-back) — meaningless on a shared host; baseline is read-only and edits live client-side
+- ⛔ **Load CSVs…** — dropped in hosted mode: defaults are server-provided and per-user additions go through the inline "+"/fleet. (Import Run still moves a whole plan between devices.)
+
+### Packaging
+- ✅ Dockerfile (multi-stage `node` → `nginx:alpine`), HEALTHCHECK
+- ✅ nginx.conf (gzip, asset cache, no-store index, security headers + CSP, SPA fallback)
+- ✅ docker-compose.yml (one-command self-host, context = repo root)
+- ✅ webapp/README.md (run instructions + privacy model)
+
+### Verification status
+- ✅ `npm run build` (vite) — bundle ≈ 76 KB JS (28 KB gzip) + 16 KB CSS
+- ✅ `npm run check` (svelte-check) — 0 errors, 0 warnings
+- ✅ Served production build smoke-tested: index mounts, hashed JS loads, baseline `/data/ships.csv` served (HTTP 200)
+- ⏳ `docker build` — not run here (no Docker daemon in this sandbox); pipeline is standard and the underlying `npm build` + static serving are verified. Run on a host with the daemon.
+
+---
+
+## Intentional deviations from the single-file app
+1. **No folder write-back.** Hosted catalog is read-only; customisations persist as a local delta. (Self-host single-file app still has full File System Access.)
+2. **Clear expands to "clear + load defaults"** per request.
+3. **Touch-friendly drag/resize** planned via Pointer Events (the original uses HTML5 DnD, which doesn't work on mobile).
+4. **Baseline updates are non-destructive**: shipping new SCU values updates everyone's defaults while keeping their owned/custom delta.
+
+## Phase 2 (deferred, not blocking)
+- **Column resize** drag handles (widths already persist in `state.colW`).
+- **Touch** drag-reorder via Pointer Events (desktop HTML5 DnD works today).
+- Optional: a small in-app "your data is local" first-run notice; per-trip collapse.
+
+## Resolved decisions
+- **Load CSVs… dropped** in hosted mode (baseline is server-provided; per-user additions use the inline "+"). Import Run (JSON) covers moving a plan between devices.
