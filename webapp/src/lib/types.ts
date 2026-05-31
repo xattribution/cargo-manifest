@@ -19,7 +19,8 @@ export interface Item {
   source: string;
   destination: string;
   mission: number; // 1..10, drives row colour
-  done: boolean;
+  done: boolean; // delivered / dropped off — the real completion (fades the trip line)
+  pickedUp: boolean; // visual-only "I've collected this" flag set from the Pick Up column
 }
 
 export interface SortState {
