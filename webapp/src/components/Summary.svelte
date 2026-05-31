@@ -28,10 +28,7 @@
   }
 </script>
 
-<section>
-  <div class="sec-head"><div class="bar"></div><h2>Loadout Summary</h2>
-    <span class="hint">every trip combined, for picking a hull</span></div>
-  <div class="panel">
+<div class="panel">
     <div class="summary-grid">
       <div class="stat accent"><div class="k">Total Cargo</div><div class="v">{agg.scu.toLocaleString()} <small>SCU</small></div></div>
       <div class="stat"><div class="k">Total Crates</div><div class="v">{agg.crates}</div></div>
@@ -52,4 +49,3 @@
       <button class="btn accent" onclick={copy}>{copied ? 'Copied ✓' : 'Copy Summary Text'}</button>
     </div>
   </div>
-</section>

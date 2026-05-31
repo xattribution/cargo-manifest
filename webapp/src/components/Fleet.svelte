@@ -53,22 +53,19 @@
   }
 </script>
 
-<section>
-  <div class="sec-head"><div class="bar"></div><h2>Ship Fit Check</h2>
-    <span class="hint">best fit pinned on top</span>
-    <span class="spacer"></span>
-    <div class="seg">
-      <button class="seg-btn" class:active={run.state.fitMode === 'largest'} onclick={() => run.setFitMode('largest')}>Largest trip</button>
-      <button class="seg-btn" class:active={run.state.fitMode === 'combined'} onclick={() => run.setFitMode('combined')}>Combined total</button>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="fit-target">
-      {#if total > 0}
-        Sizing a hull for <b>{total.toLocaleString()} SCU</b> — {tgt.label}{#if tgt.detail} (<b>{tgt.detail}</b>){/if}
-      {:else}
-        Add cargo to size a ship.
-      {/if}
+<div class="panel">
+    <div class="fleet-top">
+      <div class="fit-target">
+        {#if total > 0}
+          Sizing a hull for <b>{total.toLocaleString()} SCU</b> — {tgt.label}{#if tgt.detail} (<b>{tgt.detail}</b>){/if}
+        {:else}
+          Add cargo to size a ship.
+        {/if}
+      </div>
+      <div class="seg">
+        <button class="seg-btn" class:active={run.state.fitMode === 'largest'} onclick={() => run.setFitMode('largest')}>Largest trip</button>
+        <button class="seg-btn" class:active={run.state.fitMode === 'combined'} onclick={() => run.setFitMode('combined')}>Combined total</button>
+      </div>
     </div>
     <table class="ship-tbl">
       <thead>
@@ -106,6 +103,5 @@
         </tr>
       </tbody>
     </table>
-    <div class="mini-note">Owned ships live only in your browser (a small delta over the server's baseline catalog). <b>Largest trip</b> sizes a hull for your biggest single trip; <b>Combined total</b> sizes for everything at once. Use <b>Export CSVs</b> to keep a copy.</div>
+    <div class="mini-note">Owned ships live only in your browser (a small delta over the server's baseline catalog). <b>Largest trip</b> sizes a hull for your biggest single trip; <b>Combined total</b> sizes for everything at once. Use <b>Export catalog CSVs</b> (⚙ menu) to keep a copy.</div>
   </div>
-</section>

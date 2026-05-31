@@ -8,6 +8,27 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.2 — UI redesign (flow + colour)
+
+Addresses "map-shock / everything is blue". The page is now five distinct, accent-themed,
+numbered **zones** (`components/Zone.svelte`) that flow top→bottom:
+
+1. **Ship Fit Check** — green — *moved to the top* (decide the hull first)
+2. **Trips** — cyan — `+ Add Trip` lives in the zone header
+3. **Loadout Summary** — amber
+4. **What To Pick Up & Where** — violet — *now before drop-off* (haul order: collect first)
+5. **What To Drop Off & Where** — orange
+
+Other changes:
+- Each zone has a coloured header band (accent gradient + left border), a numbered badge,
+  and inherits its accent into its panel/cards (group cards use `var(--accent)`).
+- Utility actions (Export Run, Import Run, Export CSVs, Clear data & load defaults) moved
+  out of the body into a **⚙ cog menu** in the top bar; the big buttons are gone.
+- The button-heavy data bar is replaced by a slim one-line privacy/status strip.
+- New tokens `--violet`, `--orange`; pick-up/drop-off card accents are zone-driven.
+- nginx.conf `listen` corrected to **8080** to match the unprivileged image + `EXPOSE 8080`
+  (the unprivileged nginx can't bind 80).
+
 ## Architecture decisions
 
 | Decision | Choice | Why |

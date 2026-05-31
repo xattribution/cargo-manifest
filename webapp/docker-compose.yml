@@ -1,6 +1,7 @@
-# One-command self-host:  docker compose up -d   → http://localhost:8080
+# One-command self-host:  docker compose up -d   → http://localhost:8081
 # Build context is the repo root (..) so the build can read the baseline /data CSVs;
 # the Dockerfile lives in this folder.
+# Ports are HOST:CONTAINER — 8081 published externally → 8080 where nginx listens internally.
 services:
   cargo-manifest:
     build:
@@ -10,5 +11,5 @@ services:
     user: "1000:1000"
     container_name: cargo-manifest
     ports:
-      - "8080:8081"
+      - "8081:8080"
     restart: unless-stopped

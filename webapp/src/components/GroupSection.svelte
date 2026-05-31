@@ -7,14 +7,10 @@
   import type { Item } from '../lib/types';
 
   let {
-    field, cls, title, hint, open, onToggle, labelField, otherField, otherPrefix,
+    field, cls, labelField, otherField, otherPrefix,
   }: {
     field: 'destination' | 'source';
     cls: 'dest' | 'src';
-    title: string;
-    hint: string;
-    open: boolean;
-    onToggle: () => void;
     labelField: 'commodity';
     otherField: 'source' | 'destination';
     otherPrefix: string;
@@ -38,13 +34,7 @@
   const empty = $derived(flatEntries(run.state.sections).length === 0);
 </script>
 
-<section>
-  <div class="sec-head collapse-head" class:collapsed={!open} role="button" tabindex="0"
-    onclick={onToggle} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }}>
-    <div class="bar" style={cls === 'dest' ? 'background:var(--amber)' : ''}></div>
-    <h2>{title}</h2><span class="hint">{hint}</span><span class="caret">▾</span>
-  </div>
-  <div class="group-grid" class:collapsed={!open}>
+<div class="group-grid">
     {#if empty}
       <div style="color:var(--txt-faint);font-size:13px;padding:4px">Nothing to group yet.</div>
     {:else}
@@ -75,4 +65,3 @@
       {/each}
     {/if}
   </div>
-</section>
