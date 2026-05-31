@@ -41,7 +41,7 @@ Top-to-bottom the script is grouped into labeled blocks:
 1. **CSV parse / serialize** — `parseCSV`, `toCSV`
 2. **Reference catalogs** — `REF`, `FILES`, `DEFAULT_HEADERS`, key accessors (`nameKey`, `scuKey`, `ownedKey`), `setCategory`, `addEntry`, `namesFor`, `refreshDatalists`, `ensureOwnedColumn`, `isOwned`, `inCatalog`, `isNovel`, `catalogRow`, `shipCatalogCap`
 3. **Data loading** — `loadSeeds`, `tryFetchFolder`, `connectFolder`, `loadManualFiles`, `detectCategory`, `commitCatalog`, `writeFolder`, `exportCsvs`, `downloadText`, `flash`, `updateDataStatus`, `saveCatalog`, `loadCatalogCache`
-4. **Run state + crate math** — `ALL_SIZES`, `MISSION_COLORS`, `missionColor`/`missionFg`, `state`, `enabledDesc`, `breakdown`, `crateCount`, `eachItem`, `flatEntries`, `aggregate`, `runTotal`, `missionScus`, `fitTarget`
+4. **Run state + crate math** — `ALL_SIZES`, `MISSION_COLORS`, `missionColor`/`missionFg`, `state`, `enabledDesc`, `breakdown`, `crateCount`, `eachItem`, `flatEntries`, `aggregate`, `runTotal`, `tripScus`, `fitTarget`
 5. **Persistence** — `Store`, `STORE_KEY`, `saveState`, `loadState`, `migrateInto`, `applyPendingOwn`, `reId`, `touch`
 6. **Rendering** — sections/rows, summary, groups, fleet (see §6)
 7. **Controls wiring** — top-bar buttons, add-trip, sort, collapse, fit-mode
@@ -140,9 +140,9 @@ This intentionally matches the original spreadsheet behavior: it is **not** an o
 - `flatEntries()` → `[{it, sizes}]` flattening every item across all trips, each paired with **its trip's** size map (so per-trip limits are respected when combining).
 - `aggregate(entries)` → `{ totals:{size:count}, scu, leftover, crates }`. Used everywhere: run summary, per-trip subtotals, per-destination/source cards.
 - `runTotal()` = `aggregate(flatEntries()).scu`.
-- `missionScus()` = per-trip SCU totals; `fitTarget()` picks the sizing target:
+- `tripScus()` = per-trip SCU totals; `fitTarget()` picks the sizing target:
   - `combined` → `runTotal()`
-  - `largest` → max single trip's SCU (because trips aren't aboard simultaneously). Returns `{scu, label, detail}` for the caption.
+  - `largest` → max single trip's SCU (because trips aren't aboard simultaneously); labelled "largest trip" in the UI. Returns `{scu, label, detail}` for the caption.
 
 ---
 
@@ -152,7 +152,7 @@ Reference data can come from four places; later sources override earlier ones. B
 
 1. **`loadSeeds()`** — parse the embedded `<script type="text/plain">` CSVs → baseline so the app is never empty (and works in preview / `file://`).
 2. **`loadCatalogCache()`** — if `Store` has `cargo:catalog`, apply it (this is the in-browser mirror of prior catalog edits, so additions survive refresh even with no folder).
-3. **`tryFetchFolder()`** — `fetch('./data/<file>.csv')` for each; succeeds only when the page is served over HTTP(S). Overrides on success and sets `dataSource='fetch'`.
+3. **`tryFetchFolder()`** — `fetch('./data/<file>.csv')` for each; succeeds only when the page is served over HTTP(S). Overrides on success and sets `dataSource='fetch'`. Because this path is **read-only** (no write-back), it snapshots owned ships first and re-applies them via `mergeOwned()` after the disk catalog loads — otherwise the on-disk `Owned=No` would clobber owned marks (which, in HTTP mode, only exist in the browser cache) on every refresh.
 4. **`connectFolder()` / `loadManualFiles()`** — user-initiated. `connectFolder` uses the **File System Access API** (`showDirectoryPicker`, Chromium-only) and is the only path that grants **write-back** to the CSVs; `loadManualFiles` reads user-picked files (read-only) and uses `detectCategory()` to route each file to ships/commodities/locations by filename then header signature.
 
 ### Writing catalog changes back — `commitCatalog(cat, msg, addedName, immediate)`

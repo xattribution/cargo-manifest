@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cargo Shipment Manager</title>
+<title>Cargo Manifest — Star Citizen Hauling Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Saira:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -329,7 +329,7 @@
       <span class="hint">best fit pinned on top</span>
       <span class="spacer"></span>
       <div class="seg" id="fitModeSeg">
-        <button class="seg-btn" data-mode="largest">Largest mission</button>
+        <button class="seg-btn" data-mode="largest">Largest trip</button>
         <button class="seg-btn" data-mode="combined">Combined total</button>
       </div></div>
     <div class="panel">
@@ -342,7 +342,7 @@
         </tr></thead>
         <tbody id="shipBody"></tbody>
       </table>
-      <div class="mini-note">Ships flagged <b>Owned = Yes</b> in <b>ships.csv</b> load here automatically. <b>Largest mission</b> sizes a hull for your biggest single trip (since missions aren't all aboard at once); <b>Combined total</b> sizes for everything at once. Capacity edits and removals update the CSV; the smallest hull that fits jumps to the top.</div>
+      <div class="mini-note">Ships flagged <b>Owned = Yes</b> in <b>ships.csv</b> load here automatically. <b>Largest trip</b> sizes a hull for your biggest single trip (since trips aren't all aboard at once); <b>Combined total</b> sizes for everything at once. Capacity edits and removals update the CSV; the smallest hull that fits jumps to the top.</div>
     </div>
     <div class="status" id="storageStatus"></div>
   </section>
@@ -1118,10 +1118,26 @@ function refreshDatalists(){
 let dataDir=null, dataSource='defaults';
 function loadSeeds(){ for(const cat in FILES){ const el=document.getElementById('seed-'+cat); if(el) setCategory(cat,parseCSV(el.textContent)); } dataSource='defaults'; }
 async function tryFetchFolder(){
+  // Snapshot owned ships before the on-disk catalog replaces them. Serving over HTTP is
+  // read-only (no write-back), so owned marks live only in the browser cache; without this,
+  // the fetched CSVs (Owned=No) would clobber them and the fleet would vanish on every refresh.
+  const prevOwned=REF.ships.rows.filter(isOwned).map(r=>({name:r[nameKey('ships')],cap:Number(r[scuKey()])||0}));
   let got=0;
   for(const cat in FILES){ try{ const res=await fetch('./data/'+FILES[cat],{cache:'no-store'}); if(res.ok){ if(setCategory(cat,parseCSV(await res.text()))) got++; } }catch(e){} }
-  if(got>0){ dataSource='fetch'; ensureOwnedColumn(); refreshDatalists(); renderAll(); }
+  if(got>0){ dataSource='fetch'; ensureOwnedColumn(); mergeOwned(prevOwned); refreshDatalists(); renderAll(); }
   return got;
+}
+// Re-apply owned status (and any owned-only ship not on disk) on top of a freshly fetched
+// catalog. Used only by the read-only HTTP path; connectFolder writes back, so disk wins there.
+function mergeOwned(prev){
+  if(!prev||!prev.length) return;
+  const ok=ownedKey(), sk=scuKey();
+  for(const p of prev){ if(!p.name) continue;
+    const row=catalogRow('ships',p.name);
+    if(row){ row[ok]='Yes'; if((Number(row[sk])||0)===0 && p.cap) row[sk]=p.cap; }
+    else addEntry('ships',p.name,{[sk]:p.cap||0,[ok]:'Yes'});
+  }
+  saveCatalog();
 }
 async function connectFolder(){
   if(!window.showDirectoryPicker) return;
@@ -1226,13 +1242,13 @@ function aggregate(entries){
   return {totals,scu,leftover,crates:crateCount(totals)};
 }
 function runTotal(){ return aggregate(flatEntries()).scu; }
-function missionScus(){ return state.sections.map(sec=>({name:sec.name||'Trip', scu:aggregate(sec.items.map(it=>({it,sizes:sec.sizes}))).scu})); }
+function tripScus(){ return state.sections.map(sec=>({name:sec.name||'Trip', scu:aggregate(sec.items.map(it=>({it,sizes:sec.sizes}))).scu})); }
 function fitTarget(){
   if(state.fitMode==='combined') return {scu:runTotal(), label:'combined total', detail:''};
-  const ms=missionScus().filter(m=>m.scu>0);
-  if(!ms.length) return {scu:0, label:'largest mission', detail:''};
-  const top=ms.reduce((m,x)=>x.scu>m.scu?x:m, ms[0]);
-  return {scu:top.scu, label:'largest mission', detail:top.name};
+  const ts=tripScus().filter(t=>t.scu>0);
+  if(!ts.length) return {scu:0, label:'largest trip', detail:''};
+  const top=ts.reduce((m,x)=>x.scu>m.scu?x:m, ts[0]);
+  return {scu:top.scu, label:'largest trip', detail:top.name};
 }
 
 /* ---- run persistence (window.storage in-app, localStorage as a downloaded file) ---- */

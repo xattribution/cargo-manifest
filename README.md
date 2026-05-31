@@ -101,7 +101,7 @@ Totals for the whole run: total SCU, total crates, distinct commodities, distinc
 
 Lists the ships you've marked **Owned** in `ships.csv`. The smallest hull that fits is pinned to the top and flagged **★ Best Fit**; ships that can't fit show how many SCU short they are.
 
-- **Largest mission / Combined total** toggle (top right of the section): *Largest mission* sizes a hull for your single biggest trip — correct when trips aren't all aboard at once. *Combined total* sizes for everything at once. A caption tells you exactly what's being sized.
+- **Largest trip / Combined total** toggle (top right of the section): *Largest trip* sizes a hull for your single biggest trip — correct when trips aren't all aboard at once. *Combined total* sizes for everything at once. A caption tells you exactly what's being sized.
 - Sort by **Ship** or **Capacity** (click the headers); default is capacity high→low.
 - Add a ship in the bottom row (capacity auto-fills for known ships). Editing a capacity or removing a ship updates `ships.csv`. Removing just sets `Owned = No` — it stays in the catalog.
 
