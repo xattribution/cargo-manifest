@@ -64,10 +64,14 @@ function normalizeDelta(d: unknown): CatalogDelta {
   if (!d || typeof d !== 'object') return base;
   const o = d as Record<string, unknown>;
   return {
-    v: 1,
+    v: 2,
     shipsOwned:
       o.shipsOwned && typeof o.shipsOwned === 'object'
         ? (o.shipsOwned as CatalogDelta['shipsOwned'])
+        : {},
+    shipGrids:
+      o.shipGrids && typeof o.shipGrids === 'object'
+        ? (o.shipGrids as CatalogDelta['shipGrids'])
         : {},
     commoditiesAdded: Array.isArray(o.commoditiesAdded) ? (o.commoditiesAdded as CatalogDelta['commoditiesAdded']) : [],
     locationsAdded: Array.isArray(o.locationsAdded) ? (o.locationsAdded as CatalogDelta['locationsAdded']) : [],

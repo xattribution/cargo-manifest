@@ -8,6 +8,22 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.6 — ship cargo grids (realistic capacity & fit)
+
+- `ships.csv` gains optional columns `MaxSize, Grid32…Grid1` (between SCU and Owned):
+  max container size + how many of each size fit in the ship's most-efficient real
+  arrangement. Realistic capacity = `Σ size×count`. Backward compatible — ships without
+  these columns use nominal SCU, and the self-host single-file app ignores the extra cols.
+- **Ship Fit Check is grid-aware**: when a ship has grid data, fit uses its realistic
+  capacity AND gates on max container size (e.g. a 120-SCU ship that maxes at 16 shows
+  "✕ needs ≤16" if the load contains a 32 crate). Falls back to plain SCU otherwise.
+  Capacity column shows a green ▦ chip (realistic SCU · max size).
+- **In-app grid editor** (`ShipGridEditor.svelte`): ▦ on any fleet row, or ⚙ → "Edit ship
+  data…" for *any* catalog ship. Live grid-total vs nominal check; auto-suggests MaxSize.
+  Saves to the browser delta instantly (dual nature) and exports via Export catalog CSVs.
+- Delta schema → v2: added `shipGrids` (per-ship `{scu,maxSize,grid}`); `normalizeDelta`
+  back-fills it for older saves.
+
 ## v0.5 — column cleanup, (i) tip, spelling
 
 - **Tighter default column widths** (commodity 300→210, from 200→160, to 200→175) so the

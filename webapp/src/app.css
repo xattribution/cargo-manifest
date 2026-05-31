@@ -353,3 +353,24 @@ tr.item-row.dragging .grip{cursor:grabbing}
   font-family:var(--display);font-style:italic;font-weight:700;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.12s}
 .info-btn:hover{border-color:var(--cyan);background:rgba(111,147,178,.14);color:#f1ece0}
 
+/* ---- ship fit: cargo-grid chip + row actions ---- */
+.cap-cell{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.grid-chip{font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid color-mix(in srgb,var(--green) 45%,var(--line));
+  background:rgba(132,160,106,.08);padding:2px 7px;border-radius:2px;white-space:nowrap;cursor:help}
+.ship-actions{display:flex;gap:6px;justify-content:flex-end}
+
+/* ---- ship grid editor ---- */
+.ge-scu{font-size:12.5px;color:var(--txt-dim);margin-top:6px}
+.ge-max{max-width:140px}
+.ge-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.ge-cell{display:flex;flex-direction:column;align-items:center;gap:3px}
+.ge-size{font-family:var(--display);font-weight:700;font-size:13px;color:var(--amber-soft)}
+.ge-num{width:54px;text-align:center;background:var(--bg2);border:1px solid var(--line-bright);color:#f1ece0;
+  font-family:var(--mono);font-size:15px;padding:6px 4px;border-radius:2px;-moz-appearance:textfield}
+.ge-num::-webkit-outer-spin-button,.ge-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ge-num:focus{outline:none;border-color:var(--cyan);box-shadow:var(--glow)}
+.ge-total{margin-top:14px;font-size:13px;color:var(--txt-dim)}
+.ge-total b{color:#f1ece0}
+.ge-total.over b{color:var(--red)}
+.ge-warn{color:var(--red)}
+
