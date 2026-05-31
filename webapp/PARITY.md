@@ -8,6 +8,22 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.4 — header, density, toggle clarity + phase-2 polish
+
+- **Header reworked**: removed the always-on manifest-name box; that area now shows the
+  **data status** (ships / commodities / locations, stacked) plus a **Help (?)** button and
+  the ⚙ menu. The run name is now asked for in an **Export dialog** when you export.
+- **Help modal** (`Modal.svelte`): short what-to-do steps + a worked crate example.
+- **Privacy line moved to the page footer** (was a top strip).
+- **Tighter spacing** between/within zones (less empty separation).
+- **Crate-size toggles are now obviously switches**: ON = solid cyan + ✓ + "ON"; OFF =
+  dashed, dimmed + "OFF"; with a "click a size to switch it on/off" hint. (Flagship feature
+  — clarity matters.)
+- **Column resize** ✅ — pointer-based drag handles on Commodity/From/To headers; width is
+  shared across trips and persisted in `state.colW`.
+- **Touch-friendly drag-reorder** ✅ — replaced HTML5 DnD with Pointer Events (works on
+  mouse and touch); live reorder via row midpoints.
+
 ## v0.3 — Pick Up | Drop Off rework
 
 - **Side by side**, one section: **Pick Up** (left, violet, #4) and **Drop Off** (right,
@@ -126,10 +142,10 @@ Materialized catalog = baseline ⟕ delta. "Clear data & load defaults" removes 
 3. **Touch-friendly drag/resize** planned via Pointer Events (the original uses HTML5 DnD, which doesn't work on mobile).
 4. **Baseline updates are non-destructive**: shipping new SCU values updates everyone's defaults while keeping their owned/custom delta.
 
-## Phase 2 (deferred, not blocking)
-- **Column resize** drag handles (widths already persist in `state.colW`).
-- **Touch** drag-reorder via Pointer Events (desktop HTML5 DnD works today).
-- Optional: a small in-app "your data is local" first-run notice; per-trip collapse.
+## Phase 2 — done (v0.4)
+- ✅ **Column resize** drag handles (pointer-based, shared width in `state.colW`).
+- ✅ **Touch** drag-reorder via Pointer Events (replaced HTML5 DnD).
+- Still optional/ideas: per-trip collapse; a first-run tip; keyboard column resize.
 
 ## Resolved decisions
 - **Load CSVs… dropped** in hosted mode (baseline is server-provided; per-user additions use the inline "+"). Import Run (JSON) covers moving a plan between devices.

@@ -13,9 +13,13 @@
   import Summary from './components/Summary.svelte';
   import Routes from './components/Routes.svelte';
   import Fleet from './components/Fleet.svelte';
+  import Modal from './components/Modal.svelte';
 
   let importInput: HTMLInputElement;
   let menuOpen = $state(false);
+  let helpOpen = $state(false);
+  let exportOpen = $state(false);
+  let exportName = $state('');
 
   onMount(() => { catalog.load(); });
 
@@ -41,8 +45,12 @@
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
-  function exportRun() {
-    download((run.state.name || 'manifest').replace(/[^\w-]+/g, '_') + '.json', JSON.stringify(run.state, null, 2), 'application/json');
+  function openExport() { exportName = run.state.name || 'Untitled Run'; exportOpen = true; }
+  function doExport() {
+    const name = (exportName || '').trim() || 'Untitled Run';
+    run.setName(name);
+    download(name.replace(/[^\w-]+/g, '_') + '.json', JSON.stringify(run.state, null, 2), 'application/json');
+    exportOpen = false;
   }
   function importRun(file: File) {
     const r = new FileReader();
@@ -63,10 +71,6 @@
     catalog.reloadDefaults();
     run.clearRun();
   }
-
-  const counts = $derived(
-    `${catalog.ships.rows.length} ships (${catalog.ownedShips.length} owned) · ${catalog.commodities.rows.length} commodities · ${catalog.locations.rows.length} locations`,
-  );
 </script>
 
 <svelte:window onclick={() => (menuOpen = false)} />
@@ -83,14 +87,23 @@
       <div class="sub">SCU crate breakdown · route planner · ship loadout</div>
     </div>
     <div class="top-right">
-      <input class="manifest-name" spellcheck="false" value={run.state.name} oninput={(e) => run.setName(e.currentTarget.value)} />
+      <div class="hdr-status">
+        {#if !catalog.loaded}
+          <span class="hs-line">Loading reference data…</span>
+        {:else}
+          <span class="hs-line">· {catalog.ships.rows.length} ships ({catalog.ownedShips.length} owned)</span>
+          <span class="hs-line">· {catalog.commodities.rows.length} commodities</span>
+          <span class="hs-line">· {catalog.locations.rows.length} locations</span>
+        {/if}
+      </div>
+      <button class="icon-btn" title="Help" aria-label="Help" onclick={() => (helpOpen = true)}>?</button>
       <div class="menu-wrap">
-        <button class="cog-btn" title="Menu" aria-haspopup="menu" aria-expanded={menuOpen}
+        <button class="icon-btn" title="Menu" aria-haspopup="menu" aria-expanded={menuOpen}
           onclick={(e) => { e.stopPropagation(); menuOpen = !menuOpen; }}>⚙</button>
         {#if menuOpen}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <div class="menu" role="menu" tabindex="-1" onclick={(e) => e.stopPropagation()}>
-            <button role="menuitem" onclick={() => { menuOpen = false; exportRun(); }}><span class="mi">⤓</span> Export Run (JSON)</button>
+            <button role="menuitem" onclick={() => { menuOpen = false; openExport(); }}><span class="mi">⤓</span> Export Run (JSON)</button>
             <button role="menuitem" onclick={() => { menuOpen = false; importInput.click(); }}><span class="mi">⤒</span> Import Run (JSON)</button>
             <button role="menuitem" onclick={() => { menuOpen = false; exportCsvs(); }}><span class="mi">▤</span> Export catalog CSVs</button>
             <div class="sep"></div>
@@ -102,15 +115,6 @@
         onchange={(e) => { const f = e.currentTarget.files?.[0]; if (f) importRun(f); e.currentTarget.value = ''; }} />
     </div>
   </header>
-
-  <div class="data-strip">
-    {#if !catalog.loaded}
-      Loading reference data…
-    {:else}
-      <span class="ok">●</span> Your data stays in this browser — nothing is sent to the server · {counts}
-      {#if !storageOk}<span class="warn"> · ⚠ browser storage unavailable — use Export Run from the ⚙ menu to keep a copy</span>{/if}
-    {/if}
-  </div>
 
   <!-- 1 · Ship Fit Check (which hull to fly) -->
   <Zone accent="var(--green)" num={1} title="Ship Fit Check" hint="which of your hulls fits the load · best fit pinned on top">
@@ -140,7 +144,36 @@
   <datalist id="locationList">{#each locationList as n}<option value={n}></option>{/each}</datalist>
   <datalist id="shipList">{#each shipList as n}<option value={n}></option>{/each}</datalist>
 
-  <div class="status">
-    {storageOk ? '● saved in this browser — survives refresh. Nothing leaves your device.' : '○ no browser storage — use Export Run to keep a copy.'}
-  </div>
+  <footer class="page-foot">
+    <span class="ok">●</span> Your data stays in this browser — nothing is sent to the server.
+    {storageOk ? ' Saved locally; survives refresh.' : ' ⚠ Browser storage unavailable — use Export Run (⚙ menu) to keep a copy.'}
+  </footer>
 </div>
+
+{#if helpOpen}
+  <Modal title="How to use Cargo Manifest" onClose={() => (helpOpen = false)}>
+    <p>Plan a multi-stop Star Citizen haul: break cargo into SCU crates, see which of your ships fits, and track every pickup and drop-off.</p>
+    <ol>
+      <li><b>Add a Trip</b> for each physical haul (one ship-load). Rename it — e.g. “Going”, “Return”.</li>
+      <li><b>Choose crate sizes</b> for that trip: click a size to switch it <b>ON/OFF</b>. Off means that box size isn’t allowed (e.g. a “16 SCU and under” mission).</li>
+      <li><b>Add a commodity line</b>: a mission # (1–10, which colour-codes it), the commodity, total SCU, and From / To. It auto-breaks into crates, largest-first.</li>
+      <li><b>Ship Fit Check</b> (top): add the ships you own; the smallest hull that fits is pinned as ★ Best Fit.</li>
+      <li><b>Pick Up / Drop Off</b>: tick <b>Drop Off</b> when delivered (completes the line); tick <b>Pick Up</b> just to remember you’ve already collected that cargo.</li>
+    </ol>
+    <p class="eg"><b>Example:</b> 96 SCU of Titanium from <i>Port Tressler → Area18</i>, mission 1. With every size on it packs as <b>3×32</b>. Turn off the 32 and it becomes <b>4×24</b>.</p>
+    <p>Everything saves in your browser automatically. Use the ⚙ menu to Export/Import a run as JSON, or export the catalog CSVs.</p>
+  </Modal>
+{/if}
+
+{#if exportOpen}
+  <Modal title="Export Run" onClose={() => (exportOpen = false)}>
+    <label class="modal-label" for="exportName">Manifest name</label>
+    <input id="exportName" class="modal-input" bind:value={exportName} spellcheck="false"
+      onkeydown={(e) => { if (e.key === 'Enter') doExport(); }} />
+    <p style="margin-top:10px">Saved as a <code>.json</code> file you can re-import later or on another device.</p>
+    <div class="modal-actions">
+      <button class="btn" onclick={() => (exportOpen = false)}>Cancel</button>
+      <button class="btn accent" onclick={doExport}>Export JSON</button>
+    </div>
+  </Modal>
+{/if}
