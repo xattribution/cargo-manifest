@@ -1,5 +1,5 @@
 <script lang="ts">
-  // A distinct, accent-themed section band. Gives each major area its own colour, number,
+  // A distinct, accent-themed section band. Gives each major area its own color, number,
   // and clear separation so the page reads as discrete zones instead of one blue wall.
   import type { Snippet } from 'svelte';
 

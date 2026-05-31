@@ -1,6 +1,6 @@
 /* Global styles — ported from cargo-manager.html's <style> block (matte "Starfield"
    palette). Kept global (not Svelte-scoped) so the markup mirrors the original class
-   names 1:1 and visual parity is easy to verify. Per-row mission colours are applied
+   names 1:1 and visual parity is easy to verify. Per-row mission colors are applied
    inline via the --rowfg custom property, same as the original. */
 :root{
   --bg:#0f141a; --bg2:#141b22; --panel:#19212b; --panel2:#1e2731;
@@ -106,8 +106,10 @@ section{margin-bottom:26px}
 .leftover-mark{color:var(--red);font-size:12px;font-family:var(--mono)}
 .tbl-scroll{overflow-x:auto}
 .tbl th{position:relative}
-.col-resizer{position:absolute;top:0;right:-4px;width:11px;height:100%;cursor:col-resize;z-index:3;touch-action:none;background:transparent;border:0;padding:0;appearance:none}
-.col-resizer:hover{background:linear-gradient(90deg,transparent,rgba(111,147,178,.55))}
+.tbl th.rcol{padding-right:16px}
+.col-resizer{position:absolute;top:0;right:-8px;width:18px;height:100%;cursor:col-resize;z-index:3;touch-action:none;background:transparent;border:0;padding:0;appearance:none;display:flex;align-items:center;justify-content:center}
+.col-resizer::before{content:"";width:2px;height:58%;border-radius:2px;background:var(--line-bright);transition:.12s}
+.col-resizer:hover::before,.col-resizer:active::before{background:var(--cyan);width:3px;height:84%;box-shadow:0 0 0 3px rgba(111,147,178,.14)}
 .field input.scu{-moz-appearance:textfield}
 .field input.scu::-webkit-outer-spin-button,.field input.scu::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .tbl th.sortable{cursor:pointer;user-select:none} .tbl th.sortable:hover{color:var(--cyan)}
@@ -230,7 +232,7 @@ tr.item-row.dragging .grip{cursor:grabbing}
 /* ============================================================
    REDESIGN: distinct accent-themed zones, cog menu, slim status
    Each <Zone> sets --accent; everything inside picks up that hue
-   so the page reads as separate, colour-coded areas (not one
+   so the page reads as separate, color-coded areas (not one
    blue wall) and flows top→bottom: ship → trips → summary →
    pick up → drop off.
    ============================================================ */
@@ -345,4 +347,9 @@ tr.item-row.dragging .grip{cursor:grabbing}
 .modal-input{width:100%;background:var(--bg2);border:1px solid var(--line-bright);color:#f1ece0;font-family:var(--display);font-size:15px;letter-spacing:.5px;padding:10px 12px;border-radius:2px}
 .modal-input:focus{outline:none;border-color:var(--cyan);box-shadow:var(--glow)}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+
+/* ---- (i) info button (opens the Trips tip modal) ---- */
+.info-btn{width:24px;height:24px;border-radius:50%;border:1px solid var(--line-bright);background:var(--panel2);color:var(--cyan);
+  font-family:var(--display);font-style:italic;font-weight:700;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.12s}
+.info-btn:hover{border-color:var(--cyan);background:rgba(111,147,178,.14);color:#f1ece0}
 

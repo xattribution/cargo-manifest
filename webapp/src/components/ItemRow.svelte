@@ -34,7 +34,7 @@
       onpointerdown={(e) => onGripDown(item.id, e)}>⠿</span>
   </td>
   <td class="m-cell">
-    <input class="m-num" type="number" min="1" max="10" title="Mission # (1–10) — same number = same colour"
+    <input class="m-num" type="number" min="1" max="10" title="Mission # (1–10) — same number = same color"
       value={item.mission} oninput={(e) => setMission(e.currentTarget.value)} />
   </td>
   <td><Field bind:value={item.commodity} list="commodityList" cat="commodities" placeholder="e.g. Pressurized Ice" dataF="commodity" /></td>

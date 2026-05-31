@@ -1,4 +1,4 @@
-// Per-line mission colour. 10 solid matte colours (SC tracks up to 10 missions at once).
+// Per-line mission color. 10 solid matte colors (SC tracks up to 10 missions at once).
 // Direct port; missionFg picks dark/cream text by perceived luminance.
 
 export const MISSION_COLORS = [
