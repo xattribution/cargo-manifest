@@ -6,21 +6,18 @@
   import type { Trip, Item } from '../lib/types';
 
   let {
-    trip, item, sizes, dragId, onDragStart, onDragOver, onDragEnd,
+    trip, item, sizes, dragId, onGripDown,
   }: {
     trip: Trip;
     item: Item;
     sizes: number[];
     dragId: string | null;
-    onDragStart: (id: string) => void;
-    onDragOver: (id: string) => void;
-    onDragEnd: () => void;
+    onGripDown: (id: string, e: PointerEvent) => void;
   } = $props();
 
   const bd = $derived(breakdown(item.scu, trip.sizes));
   const color = $derived(missionColor(item.mission));
   const fg = $derived(missionFg(color));
-  let draggable = $state(false);
 
   function setMission(v: string) { item.mission = Math.max(1, Math.min(10, parseInt(v) || 1)); }
 </script>
@@ -29,15 +26,12 @@
   class="item-row colored"
   class:done={item.done}
   class:dragging={dragId === item.id}
+  data-id={item.id}
   style="background:{color}; --rowfg:{fg}"
-  draggable={draggable}
-  ondragstart={(e) => { onDragStart(item.id); e.dataTransfer?.setData('text/plain', item.id); }}
-  ondragover={(e) => { e.preventDefault(); onDragOver(item.id); }}
-  ondragend={() => { draggable = false; onDragEnd(); }}
-  ondrop={(e) => { e.preventDefault(); onDragEnd(); }}
 >
   <td class="drag-cell">
-    <span class="grip" role="button" tabindex="-1" aria-label="Drag to reorder" title="Drag to reorder" onmousedown={() => (draggable = true)} onmouseup={() => (draggable = false)}>⠿</span>
+    <span class="grip" role="button" tabindex="-1" aria-label="Drag to reorder" title="Drag to reorder"
+      onpointerdown={(e) => onGripDown(item.id, e)}>⠿</span>
   </td>
   <td class="m-cell">
     <input class="m-num" type="number" min="1" max="10" title="Mission # (1–10) — same number = same colour"
