@@ -14,6 +14,7 @@
   import Routes from './components/Routes.svelte';
   import Fleet from './components/Fleet.svelte';
   import Modal from './components/Modal.svelte';
+  import ShipGridEditor from './components/ShipGridEditor.svelte';
 
   let importInput: HTMLInputElement;
   let menuOpen = $state(false);
@@ -21,6 +22,9 @@
   let exportOpen = $state(false);
   let exportName = $state('');
   let tripsInfo = $state(false);
+  let gridOpen = $state(false);
+  let gridShip = $state('');
+  function openGrid(name: string) { gridShip = name; gridOpen = true; }
 
   onMount(() => { catalog.load(); });
 
@@ -108,6 +112,8 @@
             <button role="menuitem" onclick={() => { menuOpen = false; importInput.click(); }}><span class="mi">⤒</span> Import Run (JSON)</button>
             <button role="menuitem" onclick={() => { menuOpen = false; exportCsvs(); }}><span class="mi">▤</span> Export catalog CSVs</button>
             <div class="sep"></div>
+            <button role="menuitem" onclick={() => { menuOpen = false; openGrid(''); }}><span class="mi">▦</span> Edit ship data…</button>
+            <div class="sep"></div>
             <button role="menuitem" class="danger" onclick={() => { menuOpen = false; resetAll(); }}><span class="mi">⌫</span> Clear data &amp; load defaults</button>
           </div>
         {/if}
@@ -119,7 +125,7 @@
 
   <!-- 1 · Ship Fit Check (which hull to fly) -->
   <Zone accent="var(--green)" num={1} title="Ship Fit Check" hint="which of your hulls fits the load · best fit pinned on top">
-    <Fleet />
+    <Fleet {openGrid} />
   </Zone>
 
   <!-- 2 · Trips (the working area) -->
@@ -151,6 +157,10 @@
     {storageOk ? ' Saved locally; survives refresh.' : ' ⚠ Browser storage unavailable — use Export Run (⚙ menu) to keep a copy.'}
   </footer>
 </div>
+
+{#if gridOpen}
+  <ShipGridEditor initialName={gridShip} onClose={() => (gridOpen = false)} />
+{/if}
 
 {#if tripsInfo}
   <Modal title="Trips & crate packing" onClose={() => (tripsInfo = false)}>

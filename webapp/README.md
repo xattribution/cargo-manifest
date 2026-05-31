@@ -58,6 +58,40 @@ shared with the self-host version. `npm run dev`/`build` (and the Docker build) 
 files into `public/data/` via `scripts/sync-data.mjs`; `public/data/` is generated and
 gitignored. To update defaults (e.g. a new SC patch), edit `../data/*.csv` and rebuild.
 
+### Updating ship / commodity / location data
+
+1. Edit the relevant `/data/*.csv` (any spreadsheet — header row stays on row 1).
+2. Rebuild/redeploy: `docker compose up -d --build`.
+
+In the hosted app, end users can only layer **personal** additions and owned-ship flags on
+top (stored in their browser, never on the server). Only the `/data` CSVs change the shared
+baseline.
+
+### Ship cargo grids (realistic capacity)
+
+`ships.csv` may carry extra columns describing how cargo actually fits, beyond nominal SCU:
+
+```
+Name,SCU,MaxSize,Grid32,Grid24,Grid16,Grid8,Grid4,Grid2,Grid1,Owned
+Zeus ES,128,16,,,6,,8,,,No
+```
+- **MaxSize** — the largest container the ship physically accepts.
+- **Grid32…Grid1** — how many of each size fit in your most-efficient real arrangement
+  (blank where N/A; small leftovers go in the smaller sizes). The realistic capacity used
+  by Ship Fit Check is `Σ size×count`.
+
+Ships without these columns just use nominal SCU (fully backward-compatible; the self-host
+single-file app ignores the extra columns).
+
+**Easiest way to fill them in:** in the app, click **▦** on a fleet row, or **⚙ → Edit
+ship data…** for any ship. Edits save to your browser instantly (so you see them at once);
+**⚙ → Export catalog CSVs** then gives you an updated `ships.csv` to drop into `/data` and
+rebuild for everyone.
+
+> Note: the exported `ships.csv` reflects *your* fleet in the `Owned` column. When committing
+> to the master set, keep `Owned` as `No` (owned status is per-user browser state) — the grid
+> columns are what you want to share.
+
 ## Status
 
 Feature parity with the single-file app, plus the hosted-mode changes (client-only

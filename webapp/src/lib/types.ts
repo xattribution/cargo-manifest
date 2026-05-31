@@ -53,13 +53,23 @@ export interface OwnedShip {
   added: boolean; // true = user-added ship that is not in the baseline catalog
 }
 
+// Per-ship cargo-grid override (applies to ANY ship, owned or not). Captures the realistic
+// arrangement: max container size + how many of each size fit when the grid is filled.
+export interface ShipGrid {
+  name: string; // original-cased name
+  scu: number | null; // capacity override (null = leave baseline/owned value)
+  maxSize: number | null; // largest container the grid accepts (null = no limit)
+  grid: Record<number, number>; // size -> count when the grid is full (omit/0 where N/A)
+}
+
 export interface CatalogDelta {
   v: number; // schema version
   shipsOwned: Record<string, OwnedShip>; // key = lowercased name; presence = owned
+  shipGrids: Record<string, ShipGrid>; // key = lowercased name; per-ship grid/capacity data
   commoditiesAdded: CatalogRow[]; // user-added commodity rows (baseline is read-only reference)
   locationsAdded: CatalogRow[]; // user-added location rows
 }
 
 export function emptyDelta(): CatalogDelta {
-  return { v: 1, shipsOwned: {}, commoditiesAdded: [], locationsAdded: [] };
+  return { v: 2, shipsOwned: {}, shipGrids: {}, commoditiesAdded: [], locationsAdded: [] };
 }

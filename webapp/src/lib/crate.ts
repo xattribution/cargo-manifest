@@ -77,14 +77,27 @@ export function tripScus(sections: Trip[]): TripScu[] {
   }));
 }
 
-export interface FitTarget { scu: number; label: string; detail: string; }
+export interface FitTarget { scu: number; label: string; detail: string; totals: Record<number, number>; }
 
 export function fitTarget(sections: Trip[], fitMode: 'largest' | 'combined'): FitTarget {
-  if (fitMode === 'combined') return { scu: runTotal(sections), label: 'combined total', detail: '' };
-  const ts = tripScus(sections).filter((t) => t.scu > 0);
-  if (!ts.length) return { scu: 0, label: 'largest trip', detail: '' };
-  const top = ts.reduce((m, x) => (x.scu > m.scu ? x : m), ts[0]);
-  return { scu: top.scu, label: 'largest trip', detail: top.name };
+  if (fitMode === 'combined') {
+    const agg = aggregate(flatEntries(sections));
+    return { scu: agg.scu, label: 'combined total', detail: '', totals: agg.totals };
+  }
+  let top: { name: string; agg: Aggregate } | null = null;
+  for (const sec of sections) {
+    const agg = aggregate(sec.items.map((it) => ({ it, sizes: sec.sizes })));
+    if (agg.scu > 0 && (!top || agg.scu > top.agg.scu)) top = { name: sec.name || 'Trip', agg };
+  }
+  if (!top) return { scu: 0, label: 'largest trip', detail: '', totals: {} };
+  return { scu: top.agg.scu, label: 'largest trip', detail: top.name, totals: top.agg.totals };
+}
+
+// Largest crate size present in a totals map (0 if empty).
+export function maxCrateSize(totals: Record<number, number>): number {
+  let m = 0;
+  for (const s of ALL_SIZES) if (totals[s] && s > m) m = s;
+  return m;
 }
 
 // Group flat entries by a field (destination/source) → Map<key, Entry[]>

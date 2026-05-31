@@ -71,6 +71,24 @@ function createCatalog() {
       if (delta.shipsOwned[key]) { delete delta.shipsOwned[key]; persist(); }
     },
 
+    // ---- per-ship grid / capacity data (any ship; saved in the browser, exportable to master) ----
+    setShipGrid(name: string, data: { scu: number | null; maxSize: number | null; grid: Record<number, number> }) {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      const key = trimmed.toLowerCase();
+      const hasGrid = Object.values(data.grid).some((n) => n > 0);
+      if (!hasGrid && data.maxSize == null && data.scu == null) {
+        delete delta.shipGrids[key];
+      } else {
+        delta.shipGrids[key] = { name: trimmed, scu: data.scu, maxSize: data.maxSize, grid: { ...data.grid } };
+      }
+      persist();
+    },
+    clearShipGrid(name: string) {
+      const key = name.trim().toLowerCase();
+      if (delta.shipGrids[key]) { delete delta.shipGrids[key]; persist(); }
+    },
+
     // ---- commodities / locations (additions only) ----
     addCommodity(name: string): boolean {
       const v = name.trim();
