@@ -19,13 +19,16 @@ function freshItem(mission = 1): Item {
 function freshTrip(name: string): Trip {
   return { id: nid(), name, sizes: allSizesOn(), sort: null, items: [freshItem()] };
 }
+// Tighter defaults so the Commodity/From/To columns don't leave a big dead zone.
+const DEFAULT_COLW = { commodity: 210, source: 160, destination: 175 };
+const OLD_DEFAULT_COLW = { commodity: 300, source: 200, destination: 200 };
 function defaultState(): RunState {
   return {
     name: 'Untitled Run',
     fitMode: 'largest',
     dropOpen: true,
     pickOpen: true,
-    colW: { commodity: 300, source: 200, destination: 200 },
+    colW: { ...DEFAULT_COLW },
     sections: [freshTrip('Trip A')],
   };
 }
@@ -36,7 +39,11 @@ export function migrate(saved: unknown): RunState {
   const o = saved as Record<string, any>;
   s.name = o.name || s.name;
   s.fitMode = o.fitMode === 'combined' ? 'combined' : 'largest';
-  s.colW = Object.assign({ commodity: 300, source: 200, destination: 200 }, o.colW || {});
+  s.colW = Object.assign({ ...DEFAULT_COLW }, o.colW || {});
+  // One-time: if the user never resized (still on the old defaults), adopt the new tighter ones.
+  if (o.colW && o.colW.commodity === OLD_DEFAULT_COLW.commodity && o.colW.source === OLD_DEFAULT_COLW.source && o.colW.destination === OLD_DEFAULT_COLW.destination) {
+    s.colW = { ...DEFAULT_COLW };
+  }
   s.dropOpen = o.dropOpen !== false;
   s.pickOpen = o.pickOpen !== false;
   let sections: Trip[];

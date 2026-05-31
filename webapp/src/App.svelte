@@ -20,6 +20,7 @@
   let helpOpen = $state(false);
   let exportOpen = $state(false);
   let exportName = $state('');
+  let tripsInfo = $state(false);
 
   onMount(() => { catalog.load(); });
 
@@ -124,9 +125,10 @@
   <!-- 2 · Trips (the working area) -->
   <Zone accent="var(--cyan)" num={2} title="Trips" hint="each trip has its own crate-size limit · a trip can carry several missions">
     {#snippet actions()}
+      <button class="info-btn" title="About trips & crate packing" aria-label="About trips and crate packing"
+        onclick={(e) => { e.stopPropagation(); tripsInfo = true; }}>i</button>
       <button class="btn add sm" onclick={() => run.addTrip()}>+ Add Trip</button>
     {/snippet}
-    <div class="intro-note">Crates fill largest-first; the leftover cascades down to the next enabled size. Each commodity packs into its own crates — two different goods never share a box. Tag each line with a mission # (1–10) to colour-code objectives; the same number always gets the same colour, even across trips.</div>
     {#each run.state.sections as trip (trip.id)}
       <TripPanel {trip} />
     {/each}
@@ -150,13 +152,21 @@
   </footer>
 </div>
 
+{#if tripsInfo}
+  <Modal title="Trips & crate packing" onClose={() => (tripsInfo = false)}>
+    <p>A <b>Trip</b> is one physical haul — one load on one ship. Add a trip per leg (e.g. “Going”, “Return”).</p>
+    <p>Crates fill <b>largest-first</b>; the leftover cascades down to the next enabled size. Each commodity packs into its <b>own</b> crates — two different goods never share a box.</p>
+    <p>Tag each line with a <b>mission #</b> (1–10) to color-code objectives; the same number always gets the same color, even across trips.</p>
+  </Modal>
+{/if}
+
 {#if helpOpen}
   <Modal title="How to use Cargo Manifest" onClose={() => (helpOpen = false)}>
     <p>Plan a multi-stop Star Citizen haul: break cargo into SCU crates, see which of your ships fits, and track every pickup and drop-off.</p>
     <ol>
       <li><b>Add a Trip</b> for each physical haul (one ship-load). Rename it — e.g. “Going”, “Return”.</li>
       <li><b>Choose crate sizes</b> for that trip: click a size to switch it <b>ON/OFF</b>. Off means that box size isn’t allowed (e.g. a “16 SCU and under” mission).</li>
-      <li><b>Add a commodity line</b>: a mission # (1–10, which colour-codes it), the commodity, total SCU, and From / To. It auto-breaks into crates, largest-first.</li>
+      <li><b>Add a commodity line</b>: a mission # (1–10, which color-codes it), the commodity, total SCU, and From / To. It auto-breaks into crates, largest-first.</li>
       <li><b>Ship Fit Check</b> (top): add the ships you own; the smallest hull that fits is pinned as ★ Best Fit.</li>
       <li><b>Pick Up / Drop Off</b>: tick <b>Drop Off</b> when delivered (completes the line); tick <b>Pick Up</b> just to remember you’ve already collected that cargo.</li>
     </ol>

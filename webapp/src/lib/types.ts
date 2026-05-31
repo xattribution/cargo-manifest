@@ -18,7 +18,7 @@ export interface Item {
   scu: string; // kept as a string straight from the input, coerced via Number() — matches original
   source: string;
   destination: string;
-  mission: number; // 1..10, drives row colour
+  mission: number; // 1..10, drives row color
   done: boolean; // delivered / dropped off — the real completion (fades the trip line)
   pickedUp: boolean; // visual-only "I've collected this" flag set from the Pick Up column
 }

@@ -8,6 +8,19 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.5 — column cleanup, (i) tip, spelling
+
+- **Tighter default column widths** (commodity 300→210, from 200→160, to 200→175) so the
+  Commodity/From/To columns don't leave a big dead zone before SCU. One-time migration
+  adopts the new defaults for anyone still on the old ones (custom widths preserved).
+- **Resize handles are now visible & obvious**: a persistent vertical divider on the
+  Commodity/From/To headers (faint → cyan on hover), bigger hit area, header padding so it
+  no longer floats in empty space. Dragging unchanged (already worked well).
+- **Trips intro text moved behind an (i)** next to “+ Add Trip” → opens a small tip modal
+  (avoids the long paragraph cluttering the section). Uses the shared Modal (no clip-path
+  clipping issues).
+- **Spelling: “colour” → “color”** throughout (American English).
+
 ## v0.4 — header, density, toggle clarity + phase-2 polish
 
 - **Header reworked**: removed the always-on manifest-name box; that area now shows the
