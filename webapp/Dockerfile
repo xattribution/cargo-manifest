@@ -13,12 +13,13 @@ RUN npm ci
 RUN npm run build   # runs sync-data (copies ../data/*.csv) then vite build → dist/
 
 # ---- runtime stage ----
-FROM nginx:1.27-alpine AS runtime
+#FROM nginx:1.27-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:alpine AS runtime
 # Static files only — there is no backend and no database, so user data has nowhere to
 # live on the server. Everything the user creates stays in their browser (localStorage).
 COPY webapp/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/webapp/dist /usr/share/nginx/html
-EXPOSE 80
+EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1/ || exit 1
+  CMD wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1
 CMD ["nginx", "-g", "daemon off;"]
