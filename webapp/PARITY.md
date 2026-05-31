@@ -8,6 +8,21 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.3 — Pick Up | Drop Off rework
+
+- **Side by side**, one section: **Pick Up** (left, violet, #4) and **Drop Off** (right,
+  orange, #5) with a vertical divider (`components/Routes.svelte`). Stacks on narrow screens.
+- Renamed from "What To Pick Up & Where" / "What To Drop Off & Where" → **Pick Up** / **Drop Off**.
+- One card per location; each cargo line shows a **mission chip** (number + mission colour)
+  next to it (`.mchip`).
+- **Two completion states** (new `Item.pickedUp`, separate from `Item.done`):
+  - **Drop Off** check = the real completion → sets `done` (fades the trip line). 
+  - **Pick Up** check = visual reminder only → sets `pickedUp`; does **not** complete the line.
+  - A line is "collected" if `pickedUp || done`, so a pickup card **auto-checks** once all
+    its cargo has been dropped off; otherwise pickup is just your own where-to-go tracker.
+- Replaces the old single bidirectional `done` model for these cards. `setGroupPicked()`
+  added; collapse on these two sections dropped (always shown side by side).
+
 ## v0.2 — UI redesign (flow + colour)
 
 Addresses "map-shock / everything is blue". The page is now five distinct, accent-themed,

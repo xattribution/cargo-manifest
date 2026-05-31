@@ -11,7 +11,7 @@
   import Zone from './components/Zone.svelte';
   import TripPanel from './components/TripPanel.svelte';
   import Summary from './components/Summary.svelte';
-  import GroupSection from './components/GroupSection.svelte';
+  import Routes from './components/Routes.svelte';
   import Fleet from './components/Fleet.svelte';
 
   let importInput: HTMLInputElement;
@@ -133,19 +133,8 @@
     <Summary />
   </Zone>
 
-  <!-- 4 · Pick Up (haul order: collect first…) -->
-  <Zone accent="var(--violet)" num={4} title="What To Pick Up & Where"
-    hint="grouped by source · tick a card to complete that stop"
-    collapsible open={run.state.pickOpen} onToggle={() => run.togglePick()}>
-    <GroupSection field="source" cls="src" labelField="commodity" otherField="destination" otherPrefix="to" />
-  </Zone>
-
-  <!-- 5 · Drop Off (…then deliver) -->
-  <Zone accent="var(--orange)" num={5} title="What To Drop Off & Where"
-    hint="grouped by destination · tick a card to complete that stop"
-    collapsible open={run.state.dropOpen} onToggle={() => run.toggleDrop()}>
-    <GroupSection field="destination" cls="dest" labelField="commodity" otherField="source" otherPrefix="from" />
-  </Zone>
+  <!-- 4 · Pick Up | 5 · Drop Off — side by side (collect on the left, deliver on the right) -->
+  <Routes />
 
   <datalist id="commodityList">{#each commodityList as n}<option value={n}></option>{/each}</datalist>
   <datalist id="locationList">{#each locationList as n}<option value={n}></option>{/each}</datalist>

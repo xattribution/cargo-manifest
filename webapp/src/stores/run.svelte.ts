@@ -14,7 +14,7 @@ function reId(o: { id?: string }): void {
 }
 
 function freshItem(mission = 1): Item {
-  return { id: nid(), commodity: '', scu: '', source: '', destination: '', mission, done: false };
+  return { id: nid(), commodity: '', scu: '', source: '', destination: '', mission, done: false, pickedUp: false };
 }
 function freshTrip(name: string): Trip {
   return { id: nid(), name, sizes: allSizesOn(), sort: null, items: [freshItem()] };
@@ -52,6 +52,7 @@ export function migrate(saved: unknown): RunState {
       reId(it);
       if (!it.mission) it.mission = 1;
       if (it.done == null) it.done = false;
+      if (it.pickedUp == null) it.pickedUp = false;
       if (it.scu == null) it.scu = '';
     }
   }
@@ -121,6 +122,7 @@ function createRun() {
     },
 
     setGroupDone(items: Item[], val: boolean) { for (const it of items) it.done = val; },
+    setGroupPicked(items: Item[], val: boolean) { for (const it of items) it.pickedUp = val; },
 
     clearRun() { state = defaultState(); },
     importRun(saved: unknown) { state = migrate(saved); },

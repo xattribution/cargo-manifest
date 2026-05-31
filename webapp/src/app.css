@@ -281,3 +281,30 @@ tr.item-row.dragging .grip{cursor:grabbing}
 
 @media(max-width:720px){ .zone-title{font-size:15px;letter-spacing:1.5px} .zone-hint{display:none} }
 
+/* --- Pick Up | Drop Off: two columns side by side with a divider --- */
+.routes{display:grid;grid-template-columns:1fr 1px 1fr;column-gap:28px;align-items:start}
+.route-divider{align-self:stretch;background:linear-gradient(180deg,transparent,var(--line-bright) 10%,var(--line-bright) 90%,transparent)}
+.route-col{min-width:0}
+.route-head{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding:11px 15px;margin-bottom:14px;
+  border:1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-left:4px solid var(--accent);
+  background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 20%, transparent), color-mix(in srgb, var(--accent) 5%, transparent) 55%, transparent 82%);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%)}
+.card-list{display:flex;flex-direction:column;gap:12px}
+.empty-cards{color:var(--txt-faint);font-size:13px;padding:6px}
+/* cargo lines inside a card: mission chip + name + scu + the other endpoint */
+.giline{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:3px 0}
+.giline+.giline{border-top:1px solid rgba(42,53,64,.4)}
+.giline .gi-name{color:var(--txt)}
+.giline .gi-scu{color:var(--amber-soft);font-family:var(--mono);font-size:12.5px}
+.giline .gi-other{color:var(--txt-faint);font-size:12px}
+.giline.gi-done{opacity:.5}
+.giline.gi-done .gi-name{text-decoration:line-through}
+.mchip{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:18px;padding:0 5px;
+  border-radius:3px;font-family:var(--display);font-weight:700;font-size:11px;line-height:1;flex:0 0 auto}
+@media(max-width:860px){
+  .routes{grid-template-columns:1fr;row-gap:6px}
+  .route-divider{display:none}
+  .route-col+.route-col{margin-top:20px}
+}
+
