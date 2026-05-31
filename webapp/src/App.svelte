@@ -8,12 +8,14 @@
   import { datalistNames } from './lib/format';
   import type { Cat } from './lib/types';
 
+  import Zone from './components/Zone.svelte';
   import TripPanel from './components/TripPanel.svelte';
   import Summary from './components/Summary.svelte';
   import GroupSection from './components/GroupSection.svelte';
   import Fleet from './components/Fleet.svelte';
 
   let importInput: HTMLInputElement;
+  let menuOpen = $state(false);
 
   onMount(() => { catalog.load(); });
 
@@ -67,6 +69,8 @@
   );
 </script>
 
+<svelte:window onclick={() => (menuOpen = false)} />
+
 <div class="wrap">
   <header class="top">
     <div class="logo">
@@ -80,59 +84,72 @@
     </div>
     <div class="top-right">
       <input class="manifest-name" spellcheck="false" value={run.state.name} oninput={(e) => run.setName(e.currentTarget.value)} />
-      <button class="btn accent" onclick={exportRun}>Export Run</button>
-      <button class="btn" onclick={() => importInput.click()}>Import Run</button>
-      <button class="btn warn" onclick={resetAll}>Clear</button>
+      <div class="menu-wrap">
+        <button class="cog-btn" title="Menu" aria-haspopup="menu" aria-expanded={menuOpen}
+          onclick={(e) => { e.stopPropagation(); menuOpen = !menuOpen; }}>⚙</button>
+        {#if menuOpen}
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <div class="menu" role="menu" tabindex="-1" onclick={(e) => e.stopPropagation()}>
+            <button role="menuitem" onclick={() => { menuOpen = false; exportRun(); }}><span class="mi">⤓</span> Export Run (JSON)</button>
+            <button role="menuitem" onclick={() => { menuOpen = false; importInput.click(); }}><span class="mi">⤒</span> Import Run (JSON)</button>
+            <button role="menuitem" onclick={() => { menuOpen = false; exportCsvs(); }}><span class="mi">▤</span> Export catalog CSVs</button>
+            <div class="sep"></div>
+            <button role="menuitem" class="danger" onclick={() => { menuOpen = false; resetAll(); }}><span class="mi">⌫</span> Clear data &amp; load defaults</button>
+          </div>
+        {/if}
+      </div>
       <input bind:this={importInput} type="file" accept="application/json" style="display:none"
         onchange={(e) => { const f = e.currentTarget.files?.[0]; if (f) importRun(f); e.currentTarget.value = ''; }} />
     </div>
   </header>
 
-  <section class="data-bar">
-    <div class="panel data-panel">
-      <div class="data-status">
-        {#if !catalog.loaded}Loading reference data…{:else}
-          <span class="ok">● your data stays in this browser</span> — nothing is sent to the server &nbsp; {counts}
-          {#if !storageOk}<span class="warn"> · ⚠ browser storage unavailable — use Export Run to keep a copy</span>{/if}
-        {/if}
-      </div>
-      <div class="data-actions">
-        <button class="btn sm accent" onclick={exportCsvs}>Export CSVs</button>
-        <button class="btn sm warn" onclick={resetAll}>Clear data & load defaults</button>
-      </div>
-    </div>
-  </section>
+  <div class="data-strip">
+    {#if !catalog.loaded}
+      Loading reference data…
+    {:else}
+      <span class="ok">●</span> Your data stays in this browser — nothing is sent to the server · {counts}
+      {#if !storageOk}<span class="warn"> · ⚠ browser storage unavailable — use Export Run from the ⚙ menu to keep a copy</span>{/if}
+    {/if}
+  </div>
 
-  <section>
-    <div class="sec-head">
-      <div class="bar"></div><h2>Trips</h2>
-      <span class="hint">each trip has its own crate-size limit · a trip can carry objectives from several missions</span>
-      <span class="spacer"></span>
+  <!-- 1 · Ship Fit Check (which hull to fly) -->
+  <Zone accent="var(--green)" num={1} title="Ship Fit Check" hint="which of your hulls fits the load · best fit pinned on top">
+    <Fleet />
+  </Zone>
+
+  <!-- 2 · Trips (the working area) -->
+  <Zone accent="var(--cyan)" num={2} title="Trips" hint="each trip has its own crate-size limit · a trip can carry several missions">
+    {#snippet actions()}
       <button class="btn add sm" onclick={() => run.addTrip()}>+ Add Trip</button>
-    </div>
+    {/snippet}
     <div class="intro-note">Crates fill largest-first; the leftover cascades down to the next enabled size. Each commodity packs into its own crates — two different goods never share a box. Tag each line with a mission # (1–10) to colour-code objectives; the same number always gets the same colour, even across trips.</div>
     {#each run.state.sections as trip (trip.id)}
       <TripPanel {trip} />
     {/each}
-  </section>
+  </Zone>
+
+  <!-- 3 · Loadout Summary -->
+  <Zone accent="var(--amber)" num={3} title="Loadout Summary" hint="every trip combined, for picking a hull">
+    <Summary />
+  </Zone>
+
+  <!-- 4 · Pick Up (haul order: collect first…) -->
+  <Zone accent="var(--violet)" num={4} title="What To Pick Up & Where"
+    hint="grouped by source · tick a card to complete that stop"
+    collapsible open={run.state.pickOpen} onToggle={() => run.togglePick()}>
+    <GroupSection field="source" cls="src" labelField="commodity" otherField="destination" otherPrefix="to" />
+  </Zone>
+
+  <!-- 5 · Drop Off (…then deliver) -->
+  <Zone accent="var(--orange)" num={5} title="What To Drop Off & Where"
+    hint="grouped by destination · tick a card to complete that stop"
+    collapsible open={run.state.dropOpen} onToggle={() => run.toggleDrop()}>
+    <GroupSection field="destination" cls="dest" labelField="commodity" otherField="source" otherPrefix="from" />
+  </Zone>
 
   <datalist id="commodityList">{#each commodityList as n}<option value={n}></option>{/each}</datalist>
   <datalist id="locationList">{#each locationList as n}<option value={n}></option>{/each}</datalist>
   <datalist id="shipList">{#each shipList as n}<option value={n}></option>{/each}</datalist>
-
-  <Summary />
-
-  <GroupSection field="destination" cls="dest" title="What To Drop Off & Where"
-    hint="grouped by destination · tick a card to complete that stop"
-    open={run.state.dropOpen} onToggle={() => run.toggleDrop()}
-    labelField="commodity" otherField="source" otherPrefix="from" />
-
-  <GroupSection field="source" cls="src" title="What To Pick Up & Where"
-    hint="grouped by source · tick a card to complete that stop"
-    open={run.state.pickOpen} onToggle={() => run.togglePick()}
-    labelField="commodity" otherField="destination" otherPrefix="to" />
-
-  <Fleet />
 
   <div class="status">
     {storageOk ? '● saved in this browser — survives refresh. Nothing leaves your device.' : '○ no browser storage — use Export Run to keep a copy.'}

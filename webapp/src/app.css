@@ -8,6 +8,7 @@
   --txt:#e7e0d2; --txt-dim:#9aa5af; --txt-faint:#61707b;
   --cyan:#6f93b2; --cyan-dim:#4a6a84; --amber:#cf9a4f; --amber-soft:#e2b96e;
   --green:#84a06a; --red:#c15c46;
+  --violet:#9b85b8; --orange:#d9824e;
   --glow:0 0 0 1px rgba(111,147,178,.4);
   --display:'Chakra Petch','Bahnschrift','DIN Alternate',sans-serif;
   --body:'Saira','Segoe UI',system-ui,sans-serif;
@@ -192,7 +193,7 @@ tr.item-row.dragging .grip{cursor:grabbing}
 .group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .gcard{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);padding:14px;
   clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
-.gcard.dest{border-left:3px solid var(--amber)} .gcard.src{border-left:3px solid var(--cyan)}
+.gcard.dest,.gcard.src{border-left:3px solid var(--accent,var(--cyan))}
 .gcard .gname{font-family:var(--display);font-size:15px;font-weight:600;color:#f1ece0;letter-spacing:.5px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .gcard .gscu{font-family:var(--mono);font-size:14px;color:var(--amber-soft);white-space:nowrap}
 .gcard .gpills{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}
@@ -219,3 +220,64 @@ tr.item-row.dragging .grip{cursor:grabbing}
 .footer-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
 .mini-note{font-size:12px;color:var(--txt-dim);margin-top:8px}
 @media(max-width:720px){ h1{font-size:20px} .stat .v{font-size:24px} }
+
+/* ============================================================
+   REDESIGN: distinct accent-themed zones, cog menu, slim status
+   Each <Zone> sets --accent; everything inside picks up that hue
+   so the page reads as separate, colour-coded areas (not one
+   blue wall) and flows top→bottom: ship → trips → summary →
+   pick up → drop off.
+   ============================================================ */
+
+/* --- top bar: name + cog menu (utility actions live in the menu) --- */
+.menu-wrap{position:relative}
+.cog-btn{background:var(--panel2);border:1px solid var(--line-bright);color:var(--txt);width:42px;height:42px;
+  display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1;
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);transition:.12s}
+.cog-btn:hover{border-color:var(--cyan);color:#f1ece0;background:#222d39}
+.menu{position:absolute;right:0;top:calc(100% + 8px);min-width:236px;z-index:60;padding:6px;
+  background:var(--panel);border:1px solid var(--line-bright);box-shadow:0 12px 34px rgba(0,0,0,.55);
+  clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
+.menu button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:transparent;border:none;
+  color:var(--txt);font-family:var(--body);font-size:13.5px;letter-spacing:.2px;padding:9px 12px;border-radius:3px;text-transform:none}
+.menu button:hover{background:rgba(111,147,178,.12);color:#f1ece0}
+.menu button .mi{width:18px;text-align:center;color:var(--cyan);font-size:14px}
+.menu .sep{height:1px;background:var(--line);margin:6px 4px}
+.menu button.danger{color:var(--red)} .menu button.danger .mi{color:var(--red)}
+.menu button.danger:hover{background:rgba(193,92,70,.13)}
+
+/* --- slim privacy/status strip (replaces the old button-heavy data bar) --- */
+.data-strip{font-family:var(--mono);font-size:12px;color:var(--txt-dim);letter-spacing:.2px;
+  margin:-2px 0 28px;padding:8px 14px;border:1px solid var(--line);border-radius:3px;background:rgba(0,0,0,.14)}
+.data-strip .ok{color:var(--green)} .data-strip .warn{color:var(--amber-soft)}
+
+/* --- zones --- */
+.zone{margin-bottom:38px}
+.zone:last-of-type{margin-bottom:10px}
+.zone-head{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:12px 16px;margin-bottom:16px;
+  border:1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-left:4px solid var(--accent);
+  background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 20%, transparent), color-mix(in srgb, var(--accent) 5%, transparent) 50%, transparent 78%);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%)}
+.zone-head.collapse-head{cursor:pointer}
+.zone-head.collapse-head:hover{border-color:color-mix(in srgb, var(--accent) 50%, var(--line));
+  background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 30%, transparent), transparent 78%)}
+.zone-num{font-family:var(--display);font-weight:700;font-size:13px;color:#12181f;background:var(--accent);
+  width:25px;height:25px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent)}
+.zone-title{font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#f4efe4;margin:0}
+.zone-hint{font-size:12px;color:var(--txt-faint);letter-spacing:.3px}
+.zone-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.zone-head .caret{margin-left:auto;color:var(--accent);font-size:14px;transition:transform .15s}
+.zone-head .zone-actions~.caret{margin-left:10px}
+.zone-head.collapsed .caret{transform:rotate(-90deg)}
+/* tie the body's surfaces to the zone accent */
+.zone-body>.panel{border-left:3px solid color-mix(in srgb, var(--accent) 55%, transparent)}
+.zone-body .mission .panel{border-left:3px solid color-mix(in srgb, var(--accent) 45%, var(--cyan-dim))}
+
+/* --- ship fit: fit-target + mode toggle on one tidy row --- */
+.fleet-top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.fleet-top .fit-target{margin-bottom:0}
+
+@media(max-width:720px){ .zone-title{font-size:15px;letter-spacing:1.5px} .zone-hint{display:none} }
+
