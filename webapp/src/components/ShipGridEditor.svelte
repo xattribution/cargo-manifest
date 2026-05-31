@@ -7,7 +7,7 @@
 
   let { initialName = '', onClose }: { initialName?: string; onClose: () => void } = $props();
 
-  let sel = $state(initialName);
+  let sel = $state('');
   let maxSize = $state('');
   let counts = $state<Record<number, string>>({ 32: '', 24: '', 16: '', 8: '', 4: '', 2: '', 1: '' });
 
@@ -29,7 +29,7 @@
     }
     counts = next;
   }
-  onMount(() => { if (initialName) loadFrom(initialName); });
+  onMount(() => { sel = initialName; if (initialName) loadFrom(initialName); });
 
   const selRow = $derived(rowFor(sel));
   const nominalScu = $derived(selRow ? Number(selRow[scuKeyOf(catalog.ships)]) || 0 : null);
