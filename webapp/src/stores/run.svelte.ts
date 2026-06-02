@@ -32,6 +32,7 @@ function defaultState(): RunState {
     sections: [freshTrip('Trip A')],
     missionShips: {},
     missionNames: {},
+    missionRewards: {},
     pickOrder: [],
     dropOrder: [],
   };
@@ -45,6 +46,7 @@ export function migrate(saved: unknown): RunState {
   s.fitMode = o.fitMode === 'combined' ? 'combined' : o.fitMode === 'largest' ? 'largest' : 'mission';
   s.missionShips = o.missionShips && typeof o.missionShips === 'object' ? o.missionShips : {};
   s.missionNames = o.missionNames && typeof o.missionNames === 'object' ? o.missionNames : {};
+  s.missionRewards = o.missionRewards && typeof o.missionRewards === 'object' ? o.missionRewards : {};
   s.pickOrder = Array.isArray(o.pickOrder) ? o.pickOrder : [];
   s.dropOrder = Array.isArray(o.dropOrder) ? o.dropOrder : [];
   s.colW = Object.assign({ ...DEFAULT_COLW }, o.colW || {});
@@ -93,6 +95,10 @@ function createRun() {
       if (name.trim()) state.missionNames[mission] = name.trim();
       else delete state.missionNames[mission];
     },
+    setMissionReward(mission: number, reward: number | null) {
+      if (reward != null && reward > 0) state.missionRewards[mission] = reward;
+      else delete state.missionRewards[mission];
+    },
     // Persist a manual card order for a column (list of group keys, top-to-bottom).
     setCardOrder(which: 'pick' | 'drop', keys: string[]) {
       if (which === 'pick') state.pickOrder = keys;
@@ -139,6 +145,7 @@ function createRun() {
       tid: string,
       legs: { commodity: string; scu: number; source: string; destination: string }[],
       maxBox: number | null,
+      reward: number | null = null,
     ) {
       const t = byId(tid);
       if (!t || !legs.length) return;
@@ -149,6 +156,7 @@ function createRun() {
         t.items.push({ id: nid(), commodity: lg.commodity, scu: lg.scu === 0 ? '0' : String(lg.scu), source: lg.source, destination: lg.destination, mission, done: false, pickedUp: false });
       }
       if (maxBox != null) for (const s of [32, 24, 16, 8, 4, 2, 1]) t.sizes[s] = s <= maxBox;
+      if (reward != null && reward > 0) state.missionRewards[mission] = reward;
     },
 
     sortTrip(tid: string, key: string) {

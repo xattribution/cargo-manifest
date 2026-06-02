@@ -8,6 +8,22 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.13 — per-mission rewards + OCR accuracy (multi-pass, code matching)
+
+- **Per-mission reward (aUEC)**: new optional `missionRewards` on the run; a Reward column
+  (¤) in the Missions table + a Total footer row (total SCU and total ¤). The importer
+  auto-fills it (anchors on the word "Reward" + first number, since Tesseract often misreads
+  the ¤ glyph as "=").
+- **Multi-pass OCR**: the importer now runs 3 preprocessing variants (soft-contrast / hard-
+  threshold / gamma) and `deconflict()` votes per field — fixes per-character drift like a
+  dropped digit (81→8). Adds a **↻ Re-run** button and a **raw OCR text** expander; review
+  modal shows total SCU.
+- **OCR-tolerant code matching**: `match.ts` normalizes letter↔digit confusions in code tokens
+  (S↔5, O↔0, I/L↔1, B↔8…) so "ARC-LS" resolves to "ARC-L5". Deliberately does NOT use
+  edit-distance on codes, so genuinely different stations (ARC-L4 ≠ ARC-L5) stay distinct and a
+  garbled code flags novel for review instead of mis-merging.
+- SCU is read as the number after the slash in "Deliver 0/NN" (tolerant of slash OCR noise).
+
 ## v0.12 — OCR mission importer (screenshot → rows)
 
 - **Import a mission from a screenshot** (⎙ Import on each trip): paste/drop/pick an image of

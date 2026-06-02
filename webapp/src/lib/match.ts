@@ -38,6 +38,21 @@ function meaningful(toks: string[]): string[] {
 function isCode(t: string): boolean {
   return /\d/.test(t) && /[a-z]/i.test(t) || /^[a-z]{2,4}-/i.test(t) || /-/.test(t) && /\d/.test(t);
 }
+// Canonicalize a code token to absorb common OCR confusions so "arc-ls" == "arc-l5",
+// "s1dc06" == "51dco6", etc. Maps letters that look like digits to digits.
+function codeKey(t: string): string {
+  return t.replace(/[a-z0-9-]/gi, (ch) => {
+    const m: Record<string, string> = { o: '0', O: '0', s: '5', S: '5', i: '1', I: '1', l: '1', L: '1', b: '8', B: '8', z: '2', Z: '2', g: '9', G: '9' };
+    return (m[ch] || ch).toLowerCase();
+  });
+}
+function codesEqual(a: string, b: string): boolean {
+  // Only normalize LETTER↔DIGIT confusions (S↔5, O↔0, …) via codeKey. We deliberately do NOT
+  // use edit-distance here: digit↔digit differences are meaningful (ARC-L4 ≠ ARC-L5 are
+  // different stations), so a near-miss should flag novel for review rather than silently
+  // merge to the wrong place.
+  return a === b || codeKey(a) === codeKey(b);
+}
 
 function dice(a: Set<string>, b: Set<string>): number {
   if (!a.size || !b.size) return 0;
@@ -56,16 +71,19 @@ function score(qToks: string[], cToks: string[]): number {
   let s = dice(q, c);
 
   // containment bonus: how many of the query's tokens appear in the candidate
+  // (count an OCR-equivalent code token as contained too: "arc-ls" ⇆ "arc-l5")
+  const cArr = [...c];
   let contained = 0;
-  for (const t of q) if (c.has(t)) contained++;
+  for (const t of q) if (c.has(t) || (isCode(t) && cArr.some((x) => isCode(x) && codesEqual(t, x)))) contained++;
   const coverage = contained / q.size;
   s = s * 0.5 + coverage * 0.5;
 
-  // code-token match is a strong signal (and a code mismatch is a strong negative)
+  // code-token match is a strong signal (and a code mismatch is a strong negative).
+  // Use OCR-tolerant comparison so digit/letter confusions still match.
   const qCodes = [...q].filter(isCode);
-  const cCodes = [...c].filter(isCode);
+  const cCodes = cArr.filter(isCode);
   if (qCodes.length) {
-    const hit = qCodes.some((x) => cCodes.includes(x));
+    const hit = qCodes.some((x) => cCodes.some((y) => codesEqual(x, y)));
     s += hit ? 0.35 : -0.25;
   }
 

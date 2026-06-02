@@ -11,6 +11,8 @@
   const nk = $derived(nameKey(catalog.ships));
   // only show size columns actually used by any mission, to keep it tight
   const cols = $derived(ALL_SIZES.filter((s) => rollups.some((r) => r.agg.totals[s])));
+  const totalScu = $derived(rollups.reduce((a, r) => a + r.agg.scu, 0));
+  const totalReward = $derived(rollups.reduce((a, r) => a + (run.state.missionRewards[r.mission] || 0), 0));
 
   function rowFor(name: string): CatalogRow | null {
     const key = (name || '').trim().toLowerCase();
@@ -34,6 +36,7 @@
           <th class="mt-rt">Pick→Drop</th>
           <th class="mt-ship">Ship</th>
           <th class="mt-fit">Fit</th>
+          <th class="mt-rew">Reward</th>
         </tr>
       </thead>
       <tbody>
@@ -60,9 +63,23 @@
               {:else if fit}<span class="badge bad" title="Short {fit.short} SCU">−{fit.short.toLocaleString()}</span>
               {/if}
             </td>
+            <td class="mt-rew">
+              <span class="cur">¤</span><input class="mrew-in" inputmode="numeric" placeholder="—"
+                value={run.state.missionRewards[r.mission] ?? ''}
+                oninput={(e) => run.setMissionReward(r.mission, Number(e.currentTarget.value.replace(/[.,]/g, '')) || null)} />
+            </td>
           </tr>
         {/each}
       </tbody>
+      <tfoot>
+        <tr class="mfoot">
+          <td></td><td>Total</td>
+          <td class="mt-num strong">{totalScu.toLocaleString()}</td>
+          {#each cols as _s}<td></td>{/each}
+          <td></td><td></td><td></td><td></td>
+          <td class="mt-rew strong"><span class="cur">¤</span>{totalReward.toLocaleString()}</td>
+        </tr>
+      </tfoot>
     </table>
   </div>
 {/if}

@@ -22,6 +22,7 @@ export interface ParsedLeg {
 export interface ParsedMission {
   legs: ParsedLeg[];
   maxBox: number | null; // detected container size cap, if stated
+  reward: number | null; // aUEC reward, if the panel/header was included
   raw: string;
 }
 
@@ -52,10 +53,17 @@ function sentences(text: string): string[] {
     .filter(Boolean);
 }
 
-const DELIVER = /deliver\s+\d+\s*\/\s*(\d+)\s*scu\s+of\s+(.+?)\s+to\s+(.+?)[.]?$/i;
+// "Deliver 0/85 SCU of ..." — SCU is the number AFTER the slash (0 = amount delivered so far).
+// Tolerate OCR noise around the slash ("0 / 85", "0|85") and an optional stray space in digits.
+const DELIVER = /deliver\s+\d+\s*[/|]\s*(\d+)\s*scu\s+of\s+(.+?)\s+to\s+(.+?)[.]?$/i;
 const COLLECT = /collect\s+(.+?)\s+from\s+(.+?)[.]?$/i;
 const BOX = /(\d+)\s*scu\s*(?:or\s*(?:smaller|less|below)|in\s*size|or\s*smaller)/i;
 const BOX2 = /(?:no\s*larger\s*than|up\s*to|at\s*most[^.]*?)\s*(\d+)\s*scu/i;
+// Reward: anchor on the word "Reward" then the first number (the ¤ glyph is unreliable —
+// Tesseract often reads it as "=", "x", "¥", etc., so we don't depend on it). Falls back to
+// the aUEC/¤ forms if "Reward" isn't in frame.
+const REWARD_LABEL = /reward\b[^\d]{0,12}([\d][\d.,]{2,})/i;
+const REWARD_GLYPH = /(?:[¤¥€$]|a?uec)\s*([\d][\d.,]{2,})|([\d][\d.,]{2,})\s*a?uec/i;
 
 export function parseMission(objectivesText: string, detailsText = ''): ParsedMission {
   const raw = objectivesText;
@@ -66,6 +74,13 @@ export function parseMission(objectivesText: string, detailsText = ''): ParsedMi
   for (const src of [objectivesText, detailsText]) {
     const m = src.match(BOX) || src.match(BOX2);
     if (m) { maxBox = parseInt(m[1], 10); break; }
+  }
+
+  // reward (aUEC) if the header/reward area was included in the shot
+  let reward: number | null = null;
+  for (const src of [objectivesText, detailsText]) {
+    const m = src.match(REWARD_LABEL) || src.match(REWARD_GLYPH);
+    if (m) { const n = parseInt((m[1] || m[2] || '').replace(/[.,]/g, ''), 10); if (n >= 100) { reward = n; break; } }
   }
 
   // First pass: collect deliveries (in order) and the collect-sources that follow each.
@@ -107,5 +122,43 @@ export function parseMission(objectivesText: string, detailsText = ''): ParsedMi
     });
   }
 
-  return { legs, maxBox, raw };
+  return { legs, maxBox, reward, raw };
+}
+
+// Deconflict several OCR passes of the SAME mission into one best result. Legs are aligned by
+// order; each field is chosen by majority vote (ties → the value from the highest-confidence
+// pass, which is passed first). SCU votes on the numeric value. maxBox/reward take the first
+// non-null. This fixes per-character OCR drift (e.g. "ARC-LS" vs "ARC-L5", "8" vs "81").
+export function deconflict(missions: ParsedMission[]): ParsedMission {
+  const valid = missions.filter((m) => m.legs.length);
+  if (!valid.length) return missions[0] || { legs: [], maxBox: null, reward: null, raw: '' };
+  // anchor on the pass with the most legs (most complete), then the earliest such
+  const anchor = valid.reduce((a, b) => (b.legs.length > a.legs.length ? b : a), valid[0]);
+  const n = anchor.legs.length;
+
+  const vote = (vals: string[]): string => {
+    const counts = new Map<string, number>();
+    let best = vals[0] ?? ''; let bestC = 0;
+    vals.forEach((v) => { if (!v) return; const c = (counts.get(v) || 0) + 1; counts.set(v, c); if (c > bestC) { bestC = c; best = v; } });
+    return best;
+  };
+
+  const legs: ParsedLeg[] = [];
+  for (let i = 0; i < n; i++) {
+    const variants = valid.map((m) => m.legs[i]).filter(Boolean);
+    const a = anchor.legs[i];
+    legs.push({
+      commodity: vote(variants.map((v) => v.commodity)) || a.commodity,
+      scu: parseInt(vote(variants.map((v) => String(v.scu))), 10) || a.scu,
+      source: vote(variants.map((v) => v.source)) || a.source,
+      destination: vote(variants.map((v) => v.destination)) || a.destination,
+      primary: a.primary,
+    });
+  }
+  return {
+    legs,
+    maxBox: valid.map((m) => m.maxBox).find((x) => x != null) ?? null,
+    reward: valid.map((m) => m.reward).find((x) => x != null) ?? null,
+    raw: anchor.raw,
+  };
 }
