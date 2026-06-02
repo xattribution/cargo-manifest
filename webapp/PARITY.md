@@ -319,11 +319,15 @@ Materialized catalog = baseline ⟕ delta. "Clear data & load defaults" removes 
 
 ---
 
-## Intentional deviations from the single-file app
-1. **No folder write-back.** Hosted catalog is read-only; customisations persist as a local delta. (Self-host single-file app still has full File System Access.)
-2. **Clear expands to "clear + load defaults"** per request.
-3. **Touch-friendly drag/resize** planned via Pointer Events (the original uses HTML5 DnD, which doesn't work on mobile).
+## Core design choices (early)
+1. **No folder write-back.** Hosted catalog baseline is read-only; user customisations persist as a local delta.
+2. **Clear = "clear + load defaults".**
+3. **Touch-friendly drag/resize** via Pointer Events (works on mobile).
 4. **Baseline updates are non-destructive**: shipping new SCU values updates everyone's defaults while keeping their owned/custom delta.
+
+> Historical note: early entries below compare against the original single-file
+> `cargo-manager.html`, which is now deprecated/removed (archived in a fork). The webapp is
+> the only maintained app; references to "the single-file app / the original" are history.
 
 ## Phase 2 — done (v0.4)
 - ✅ **Column resize** drag handles (pointer-based, shared width in `state.colW`).

@@ -22,12 +22,10 @@
   state**. Everything the user does lives in their browser `localStorage`. The OCR runs
   in-browser (Tesseract.js, locally vendored — no cloud, no upload). *Do not* introduce
   anything that sends user data off-device.
-- **Two apps in one repo:**
-  - **`/cargo-manager.html`** (repo root) — the original **single-file** self-host app.
-    Self-contained, documented by **root `/README.md`** and **root `/ARCHITECTURE.md`**.
-    *Largely frozen.* The webapp is where active development happens.
-  - **`/webapp/`** — this app. The modern rewrite. Shares **only** the `/data/*.csv`
-    catalog with the single-file app (build-time copy; see §5).
+- **One app:** `/webapp/` is the only maintained application. (Historically there was a
+  single-file `cargo-manager.html` at the repo root; it is **deprecated and removed from
+  `main`**, archived in a fork. Some code comments/CSV notes still mention it — harmless
+  history. Don't go looking for it.)
 - **Source of truth for catalog data:** repo-root **`/data/*.csv`** (`ships`,
   `commodities`, `locations`). Never edited inside `webapp/`; copied in at build.
 
@@ -62,15 +60,13 @@ lives behind the `?` help and `(i)` info buttons).
 
 ```
 /                         repo root
-├── cargo-manager.html    SINGLE-FILE app (frozen-ish). Self-contained.
-├── README.md             user guide for the single-file app
-├── ARCHITECTURE.md       tech reference for the single-file app
+├── README.md             repo front door (points here)
 ├── LICENSE
-├── data/                 ★ SOURCE OF TRUTH catalog CSVs (shared by both apps)
+├── data/                 ★ SOURCE OF TRUTH catalog CSVs (copied into the build)
 │   ├── ships.csv         Name,SCU,MaxSize,Grid32..Grid1,Owned
 │   ├── commodities.csv   Name,Type
 │   └── locations.csv     Name,Type,System,Planet,Moon,Place
-└── webapp/               ★ THIS APP
+└── webapp/               ★ THE APP
     ├── ARCHITECTURE.md   ← you are here
     ├── PARITY.md         feature changelog + decision log (vX.Y entries)
     ├── README.md         how to run/deploy the webapp
@@ -142,7 +138,7 @@ They're independently testable. **Keep them framework-free** — UI lives in com
 | File | Responsibility | Key exports / notes |
 |---|---|---|
 | `types.ts` | All shared interfaces | `Item`, `Trip`, `RunState`, `Category`, `CatalogDelta`, `ShipGrid`, `emptyDelta()`. **Single place to change the data model.** |
-| `csv.ts` | Quote-aware CSV parse/serialize | `parseCSV`, `toCSV`. Handles escaped quotes, CRLF, BOM. Verbatim port from the single-file app — *don't rewrite casually.* |
+| `csv.ts` | Quote-aware CSV parse/serialize | `parseCSV`, `toCSV`. Handles escaped quotes, CRLF, BOM. Battle-tested — *don't rewrite casually.* |
 | `crate.ts` | **The crate-packing algorithm** + aggregation | `breakdown(scu, sizes)` greedy largest-first; `aggregate(entries)`; `flatEntries`; `fitTarget`; `maxCrateSize`; `groupEntries`; `ALL_SIZES=[32,24,16,8,4,2,1]`. |
 | `mission.ts` | Mission colors | `MISSION_COLORS` (10 matte hues), `missionColor(n)`, `missionFg(hex)` (auto dark/cream contrast via luminance). |
 | `missions.ts` | Per-mission rollup | `missionRollups(sections, order)` — buckets items by mission #, honours display order, keeps **blank** missions visible. |
@@ -414,7 +410,7 @@ an **industrial "dispatch desk"** aesthetic. Honor it:
 
 - No network call sends user data anywhere. Only outbound request is Google Fonts (CSS).
 - OCR runs entirely in-browser against local `public/ocr` assets.
-- The single-file app (`/cargo-manager.html`) and the webapp share **only** `/data/*.csv`.
+- Catalog data comes **only** from `/data/*.csv` (copied into the build); no other source.
 - `npm run check` (svelte-check) → 0 errors, 0 warnings. `npm run build` succeeds.
 - Catalog source of truth is `/data/*.csv`; the webapp never persists catalog *baseline*
   anywhere but reads it fresh each load.
@@ -449,14 +445,11 @@ an **industrial "dispatch desk"** aesthetic. Honor it:
 - No automated tests in CI (verification is `svelte-check` + manual/headless Playwright runs
   during development). A test harness would be a reasonable future add.
 - Touch drag/resize works but benefits from real-device testing.
-- The single-file app is **not** kept at feature parity with the webapp anymore; it predates
-  missions/grids/OCR. `PARITY.md` tracks the divergence.
 
 ---
 
 ## 17. Pointers
 
 - **Feature changelog & decisions:** `webapp/PARITY.md` (vX.Y entries, most recent first).
-- **Run/deploy:** `webapp/README.md`.
-- **Single-file app:** `/README.md`, `/ARCHITECTURE.md` (root).
+- **Run/deploy:** `webapp/README.md`. **Repo front door:** `/README.md`.
 - **This file:** keep it current. It is the project's memory.

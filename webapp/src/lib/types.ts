@@ -1,5 +1,5 @@
-// Shared data model. Mirrors the `state` / `REF` shapes from the original single-file
-// app (see ../../cargo-manager.html and ARCHITECTURE.md §3) so behaviour stays identical.
+// Shared data model — the single place to change the run/catalog shapes.
+// See ARCHITECTURE.md §3 (data domains) and §4 (lib map).
 
 export type Cat = 'ships' | 'commodities' | 'locations';
 

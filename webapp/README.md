@@ -1,9 +1,7 @@
 # Cargo Manifest — Webapp (Docker)
 
-A snappy, self-contained **webapp build** of the Star Citizen hauling planner, meant to be
-hosted (homelab, VPS, LAN) so several people can use it from a browser. It is a separate
-artifact from the root single-file `cargo-manager.html` self-host tool — that one is
-untouched and still works by double-clicking.
+A snappy, self-hostable Star Citizen hauling planner (homelab, VPS, LAN) — several people
+can use it from a browser, with no server-side data.
 
 Built with **Svelte 5 + Vite + TypeScript**, served as static files by **nginx**.
 
