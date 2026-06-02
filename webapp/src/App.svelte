@@ -7,6 +7,7 @@
   import { FILES, namesOf } from './lib/catalog';
   import { datalistNames } from './lib/format';
   import { aggregate, flatEntries } from './lib/crate';
+  import { theme } from './lib/theme.svelte';
   import type { Cat } from './lib/types';
 
   import Zone from './components/Zone.svelte';
@@ -88,6 +89,7 @@
 
     <div class="side-foot">
       <button class="ic" title="Help" aria-label="Help" onclick={() => (helpOpen = true)}>?</button>
+      <button class="ic" title="Toggle light / dark" aria-label="Toggle light or dark theme" onclick={() => theme.toggle()}>{theme.value === 'dark' ? '☀' : '☾'}</button>
       <div class="menu-wrap">
         <button class="ic" title="Menu" aria-haspopup="menu" aria-expanded={menuOpen}
           onclick={(e) => { e.stopPropagation(); menuOpen = !menuOpen; }}>⚙</button>

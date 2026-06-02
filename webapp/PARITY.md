@@ -8,6 +8,17 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.9 — contrast pass, distinct completion, dark mode
+
+- **Light theme toned down** (warmer manila, less stark white); table headers get a tinted
+  band, stat values/body text bumped for readability behind charts & lists.
+- **Completed items** now use a distinct **greenish-grey wash** + struck text (rows, group
+  cards, and item lines) instead of plain fade-out.
+- **Full dark mode** toggle (☾/☀ in the sidebar footer): palette split into shared tokens +
+  `[data-theme=light|dark]` overrides; flips the whole page (sidebar already dark). Persists
+  to localStorage (`cargo:webapp:theme`), defaults to OS `prefers-color-scheme`, and sets
+  `color-scheme` so native controls follow. `lib/theme.svelte.ts`.
+
 ## v0.8 — dispatch-desk redesign (sidebar + light workspace)
 
 - **Full visual redesign** away from the dark sci-fi look: a **dark operations sidebar**
