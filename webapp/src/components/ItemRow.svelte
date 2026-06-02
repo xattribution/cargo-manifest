@@ -17,7 +17,6 @@
 
   const bd = $derived(breakdown(item.scu, trip.sizes));
   const color = $derived(missionColor(item.mission));
-  const fg = $derived(missionFg(color));
 
   function setMission(v: string) { item.mission = Math.max(1, Math.min(10, parseInt(v) || 1)); }
 </script>
@@ -27,7 +26,7 @@
   class:done={item.done}
   class:dragging={dragId === item.id}
   data-id={item.id}
-  style="background:{color}; --rowfg:{fg}"
+  style="--rowbar:{color}; --rowfg:{color}"
 >
   <td class="drag-cell">
     <span class="grip" role="button" tabindex="-1" aria-label="Drag to reorder" title="Drag to reorder"
