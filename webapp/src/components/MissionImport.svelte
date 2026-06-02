@@ -9,7 +9,7 @@
 
   let { tripId, onClose }: { tripId: string; onClose: () => void } = $props();
 
-  type Stage = 'drop' | 'working' | 'review' | 'error';
+  type Stage = 'drop' | 'crop' | 'working' | 'review' | 'error';
   let stage = $state<Stage>('drop');
   let progress = $state(0);
   let errMsg = $state('');
@@ -18,6 +18,61 @@
   let rawText = $state('');
   let showRaw = $state(false);
   let lastFile: Blob | null = null;
+
+  // crop state (fractions 0..1 of the source image)
+  let imgUrl = $state('');
+  let imgW = 0, imgH = 0;
+  let sel = $state({ x: 0.45, y: 0.06, w: 0.54, h: 0.9 }); // default: right column where objectives sit
+  let cropBoxEl = $state<HTMLDivElement>();
+  type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se';
+
+  function loadForCrop(file: Blob) {
+    lastFile = file;
+    if (imgUrl) URL.revokeObjectURL(imgUrl);
+    imgUrl = URL.createObjectURL(file);
+    const im = new Image();
+    im.onload = () => { imgW = im.naturalWidth; imgH = im.naturalHeight; stage = 'crop'; };
+    im.src = imgUrl;
+  }
+
+  // pointer-drag to move or resize the selection
+  let drag: { mode: DragMode; x0: number; y0: number; s0: typeof sel } | null = null;
+  function startSel(mode: DragMode, e: PointerEvent) {
+    e.preventDefault(); e.stopPropagation();
+    drag = { mode, x0: e.clientX, y0: e.clientY, s0: { ...sel } };
+    window.addEventListener('pointermove', moveSel);
+    window.addEventListener('pointerup', () => { drag = null; window.removeEventListener('pointermove', moveSel); }, { once: true });
+  }
+  function moveSel(e: PointerEvent) {
+    if (!drag || !cropBoxEl) return;
+    const d = drag;
+    const r = cropBoxEl.getBoundingClientRect();
+    const dx = (e.clientX - d.x0) / r.width;
+    const dy = (e.clientY - d.y0) / r.height;
+    const s = { ...d.s0 };
+    const clamp = (v: number) => Math.max(0, Math.min(1, v));
+    if (d.mode === 'move') { s.x = clamp(s.x + dx); s.y = clamp(s.y + dy); s.x = Math.min(s.x, 1 - s.w); s.y = Math.min(s.y, 1 - s.h); }
+    else {
+      if (d.mode.includes('w')) { const nx = clamp(s.x + dx); s.w = s.w + (s.x - nx); s.x = nx; }
+      if (d.mode.includes('e')) { s.w = clamp(s.w + dx); }
+      if (d.mode.includes('n')) { const ny = clamp(s.y + dy); s.h = s.h + (s.y - ny); s.y = ny; }
+      if (d.mode.includes('s')) { s.h = clamp(s.h + dy); }
+    }
+    s.w = Math.max(0.1, Math.min(1 - s.x, s.w)); s.h = Math.max(0.1, Math.min(1 - s.y, s.h));
+    sel = s;
+  }
+
+  async function cropToBlob(): Promise<Blob> {
+    const im = new Image(); im.src = imgUrl;
+    await im.decode();
+    const sx = Math.round(sel.x * imgW), sy = Math.round(sel.y * imgH);
+    const sw = Math.round(sel.w * imgW), sh = Math.round(sel.h * imgH);
+    const c = document.createElement('canvas'); c.width = sw; c.height = sh;
+    c.getContext('2d')!.drawImage(im, sx, sy, sw, sh, 0, 0, sw, sh);
+    return await new Promise((res) => c.toBlob((b) => res(b!), 'image/png'));
+  }
+  async function runCropped() { handleImage(await cropToBlob()); }
+  function runWhole() { if (lastFile) handleImage(lastFile); }
 
   interface Row {
     commodity: string; comNovel: boolean;
@@ -58,12 +113,12 @@
   }
   function rerun() { if (lastFile) handleImage(lastFile); }
 
-  function onDrop(e: DragEvent) { e.preventDefault(); const f = e.dataTransfer?.files?.[0]; if (f) handleImage(f); }
+  function onDrop(e: DragEvent) { e.preventDefault(); const f = e.dataTransfer?.files?.[0]; if (f) loadForCrop(f); }
   function onPaste(e: ClipboardEvent) {
     const item = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith('image/'));
-    const f = item?.getAsFile(); if (f) handleImage(f);
+    const f = item?.getAsFile(); if (f) loadForCrop(f);
   }
-  function onPick(e: Event) { const f = (e.currentTarget as HTMLInputElement).files?.[0]; if (f) handleImage(f); }
+  function onPick(e: Event) { const f = (e.currentTarget as HTMLInputElement).files?.[0]; if (f) loadForCrop(f); }
 
   function refreshNovel(r: Row) {
     r.comNovel = !!r.commodity && !comNames.some((n) => n.toLowerCase() === r.commodity.toLowerCase());
@@ -97,6 +152,25 @@
       <div class="imp-drop-t">Paste, drop, or choose a screenshot</div>
       <div class="imp-drop-s">Crop to the <b>Primary Objectives</b> panel (include the reward for auto-fill). Read in your browser — never uploaded.</div>
       <label class="btn accent sm imp-pick">Choose image<input type="file" accept="image/*" style="display:none" onchange={onPick} /></label>
+    </div>
+  {:else if stage === 'crop'}
+    <p class="imp-crophint">Drag the box around just the <b>Primary Objectives</b> column (avoids the Details text bleeding in). Or use the whole image.</p>
+    <div class="cropwrap" bind:this={cropBoxEl}>
+      <img src={imgUrl} alt="screenshot" class="cropimg" draggable="false" />
+      <div class="cropdim" style="--x:{sel.x*100}%;--y:{sel.y*100}%;--w:{sel.w*100}%;--h:{sel.h*100}%"></div>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="cropsel" style="left:{sel.x*100}%;top:{sel.y*100}%;width:{sel.w*100}%;height:{sel.h*100}%"
+        onpointerdown={(e) => startSel('move', e)}>
+        <span class="ch nw" onpointerdown={(e) => startSel('nw', e)}></span>
+        <span class="ch ne" onpointerdown={(e) => startSel('ne', e)}></span>
+        <span class="ch sw" onpointerdown={(e) => startSel('sw', e)}></span>
+        <span class="ch se" onpointerdown={(e) => startSel('se', e)}></span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick={() => (stage = 'drop')}>Back</button>
+      <button class="btn" onclick={runWhole}>Use whole image</button>
+      <button class="btn accent" onclick={runCropped}>Read selection</button>
     </div>
   {:else if stage === 'working'}
     <div class="imp-working">

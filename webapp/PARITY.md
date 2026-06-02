@@ -8,6 +8,21 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.14 — OCR importer: fix Details bleed, add crop step
+
+- **Fixed flavor-text bleed** (e.g. "Everus Harbor. a few different spots. <$"): the parser now
+  bounds commodity/location capture at the first period, splits segments on sentence ends, and
+  cleanLoc strips trailing qualifiers ("in Lorville", "on Hurston", "above …") plus OCR
+  column-divider junk (`| < > $` and dangling single letters). Locations/commodities never
+  contain a period, so cross-column text can no longer contaminate a field.
+- **Added a crop step** to the importer: after choosing an image, a draggable selection box
+  (defaulting over the right-hand Primary Objectives column) lets you isolate the objectives
+  before OCR — the real fix for two-column screenshots where OCR interleaves columns. "Use
+  whole image" available for already-cropped shots. Crop happens in-canvas; image still never
+  leaves the browser.
+- Verified end-to-end: a two-column render with the default crop yields clean legs
+  (Teasa Spaceport / HDPC-Cassillo / HDPC-Farnesway, correct SCU, source Everus Harbor).
+
 ## v0.13 — per-mission rewards + OCR accuracy (multi-pass, code matching)
 
 - **Per-mission reward (aUEC)**: new optional `missionRewards` on the run; a Reward column
