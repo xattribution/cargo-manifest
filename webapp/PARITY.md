@@ -1,8 +1,9 @@
 # Webapp — Feature Parity & Decision Log
 
-Tracks the Docker-hosted **webapp** rewrite (Svelte 5 + Vite + TS) against the original
-single-file self-host app (`../cargo-manager.html`, documented in `../README.md` and
-`../ARCHITECTURE.md`). When a behaviour is unclear, the single-file app is the reference.
+Dated changelog + decision log for the Docker-hosted **webapp** (Svelte 5 + Vite + TS).
+For *how the app is built and why* (the full architecture/autopsy), see
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) — read that first before editing. This file is the
+chronological record of what changed and the reasoning behind each call.
 
 **Legend:** ✅ done · 🟡 in progress · ⛔ intentionally dropped (with reason) · 🔵 changed by design · ⬜ not started
 

@@ -1,5 +1,17 @@
 # Cargo Manifest — Star Citizen Hauling Planner
 
+> **This repo contains two apps that share one catalog (`/data/*.csv`):**
+>
+> | | What | Where | Docs |
+> |---|---|---|---|
+> | **Webapp** (primary, actively developed) | Svelte + Docker build; missions, ship cargo grids, screenshot-OCR import, themes. Self-host for several users over a browser. | [`webapp/`](./webapp/) | [`webapp/README.md`](./webapp/README.md) · [`webapp/ARCHITECTURE.md`](./webapp/ARCHITECTURE.md) · [`webapp/PARITY.md`](./webapp/PARITY.md) |
+> | **Single-file app** (this README, older, mostly frozen) | One `cargo-manager.html`, double-click to run. No build. | [`cargo-manager.html`](./cargo-manager.html) | this file · [`ARCHITECTURE.md`](./ARCHITECTURE.md) |
+>
+> **Working on the webapp? Start with [`webapp/ARCHITECTURE.md`](./webapp/ARCHITECTURE.md).**
+> The rest of *this* README documents the **single-file** app only.
+
+---
+
 A single-file, offline web tool for planning multi-stop cargo runs in Star Citizen. Enter what you're hauling, break it into SCU crate sizes automatically, see which of your owned ships can carry it, and track each pickup/drop-off as you complete it.
 
 Everything lives in one `cargo-manager.html` file plus an optional `data/` folder of CSVs. No install, no account, no internet required after the fonts load.
@@ -40,6 +52,7 @@ You can edit these in any spreadsheet app or text editor. Headers must stay on t
 
 - **ships.csv** — `Name, SCU, Owned`
   - `SCU` = cargo capacity. `Owned` = `Yes`/`No`. Ships marked `Yes` auto-load into the Ship Fit Check list.
+  - *Note:* the shared `/data/ships.csv` also carries extra cargo-grid columns (`MaxSize, Grid32…Grid1`) used by the **webapp** for realistic fit. This single-file app ignores them — harmless.
 - **commodities.csv** — `Name, Type` (Type isn't shown yet — reserved for a future feature).
 - **locations.csv** — `Name, Type, System, Planet, Moon, Place` (only `Name` is searched/shown right now; the rest are kept for later).
 
