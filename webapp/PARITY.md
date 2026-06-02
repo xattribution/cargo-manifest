@@ -8,6 +8,26 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.7 — missions, card reorder, SCADA restyle
+
+- **Industrial / SCADA restyle**: flat charcoal surfaces, hairline gridline texture, square
+  corners (all angular `clip-path` panels removed), denser rows, mono/upper labels, signal
+  colors, left-accent zone bars with a register feel. No glows/gradients. More "control panel
+  a logistics company actually uses" than sci-fi.
+- **Missions register** (`Missions.svelte`, zone 2): one row per in-use mission (1–10) with
+  color swatch, editable label, total SCU, crates (+leftover), crate breakdown, distinct
+  pickup/dropoff counts, and a **per-mission ship assignment** with a grid-aware FIT badge.
+- **Ship Fit Check 3rd mode**: **Per mission** (sizes the global fleet for the largest single
+  mission) / Largest trip / Combined total. Per-mission assignment lives in the Missions panel
+  so you can split a run across several hulls or view the largest/combined total.
+- **Card reorder**: Pick Up and Drop Off cards have a ⠿ grip; manual order persists per column
+  (`pickOrder`/`dropOrder`), pointer-based (mouse + touch). New cards fall in by SCU desc.
+- Run state gains `missionShips`, `missionNames`, `pickOrder`, `dropOrder` (all defaulted in
+  `migrate`); `fitMode` widened to `mission|largest|combined`. Shared `shipFit()` helper in
+  catalog.ts powers both the fleet and mission fit badges.
+- Section order: 1 Ship Fit · 2 Missions · 3 Manifest (Trips) · 4 Loadout Summary · 5 Pick Up |
+  6 Drop Off.
+
 ## v0.6 — ship cargo grids (realistic capacity & fit)
 
 - `ships.csv` gains optional columns `MaxSize, Grid32…Grid1` (between SCU and Owned):

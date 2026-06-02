@@ -38,11 +38,15 @@ export interface Trip {
 
 export interface RunState {
   name: string;
-  fitMode: 'largest' | 'combined';
+  fitMode: 'mission' | 'largest' | 'combined';
   dropOpen: boolean;
   pickOpen: boolean;
   colW: { commodity: number; source: number; destination: number };
   sections: Trip[];
+  missionShips: Record<number, string>; // mission # -> assigned ship name ('' = none)
+  missionNames: Record<number, string>; // mission # -> optional label
+  pickOrder: string[]; // manual ordering of Pick Up cards (by source key); unknown keys fall to the end
+  dropOrder: string[]; // manual ordering of Drop Off cards (by destination key)
 }
 
 // ---- Hybrid persistence: only deltas vs. the server-hosted baseline live in the browser ----
