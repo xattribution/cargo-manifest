@@ -6,14 +6,14 @@
   import { toCSV } from './lib/csv';
   import { FILES, namesOf } from './lib/catalog';
   import { datalistNames } from './lib/format';
+  import { aggregate, flatEntries } from './lib/crate';
   import type { Cat } from './lib/types';
 
   import Zone from './components/Zone.svelte';
   import TripPanel from './components/TripPanel.svelte';
-  import Summary from './components/Summary.svelte';
+  import Overview from './components/Overview.svelte';
   import Routes from './components/Routes.svelte';
   import Fleet from './components/Fleet.svelte';
-  import Missions from './components/Missions.svelte';
   import Modal from './components/Modal.svelte';
   import ShipGridEditor from './components/ShipGridEditor.svelte';
 
@@ -22,14 +22,13 @@
   let helpOpen = $state(false);
   let exportOpen = $state(false);
   let exportName = $state('');
-  let tripsInfo = $state(false);
   let gridOpen = $state(false);
   let gridShip = $state('');
+  let navOpen = $state(false); // mobile sidebar
   function openGrid(name: string) { gridShip = name; gridOpen = true; }
 
   onMount(() => { catalog.load(); });
 
-  // Debounced autosave of the run (catalog delta is persisted on each mutation in the store).
   let saveTimer: ReturnType<typeof setTimeout>;
   $effect(() => {
     const snap = $state.snapshot(run.state);
@@ -37,18 +36,16 @@
     saveTimer = setTimeout(() => saveRun(snap), 350);
   });
 
-  // Datalists = catalog names ∪ values already used in the run.
   const commodityList = $derived(datalistNames(namesOf(catalog.commodities), run.state.sections.flatMap((s) => s.items.map((i) => i.commodity))));
   const locationList = $derived(datalistNames(namesOf(catalog.locations), run.state.sections.flatMap((s) => s.items.flatMap((i) => [i.source, i.destination]))));
   const shipList = $derived(namesOf(catalog.ships));
+  const agg = $derived(aggregate(flatEntries(run.state.sections)));
 
   function download(filename: string, text: string, type: string) {
     const blob = new Blob([text], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
+    a.href = url; a.download = filename; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   function openExport() { exportName = run.state.name || 'Untitled Run'; exportOpen = true; }
@@ -60,143 +57,119 @@
   }
   function importRun(file: File) {
     const r = new FileReader();
-    r.onload = () => {
-      try { run.importRun(JSON.parse(String(r.result))); } catch { alert('Could not read that file — is it a Run export?'); }
-    };
+    r.onload = () => { try { run.importRun(JSON.parse(String(r.result))); } catch { alert('Could not read that file — is it a Run export?'); } };
     r.readAsText(file);
   }
   function exportCsvs() {
-    for (const cat of Object.keys(FILES) as Cat[]) {
-      const c = catalog.catOf(cat);
-      download(FILES[cat], toCSV(c.header, c.rows), 'text/csv');
-    }
+    for (const cat of Object.keys(FILES) as Cat[]) { const c = catalog.catOf(cat); download(FILES[cat], toCSV(c.header, c.rows), 'text/csv'); }
   }
   function resetAll() {
     if (!confirm('Clear ALL your data (run, owned ships, and any added commodities/locations) and load the built-in defaults? This cannot be undone.')) return;
-    clearAll();
-    catalog.reloadDefaults();
-    run.clearRun();
+    clearAll(); catalog.reloadDefaults(); run.clearRun();
   }
 </script>
 
 <svelte:window onclick={() => (menuOpen = false)} />
 
-<div class="wrap">
-  <header class="top">
-    <div class="logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#6f93b2" stroke-width="1.6">
-        <path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" /><path d="M3 8l9 5 9-5" /><path d="M12 13v8" />
-      </svg>
+<div class="app" class:nav-open={navOpen}>
+  <!-- ===== Sidebar: brand + fleet management ===== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" /><path d="M3 8l9 5 9-5" /><path d="M12 13v8" />
+        </svg>
+      </span>
+      <span class="brand-txt">CARGO<b>MANIFEST</b></span>
+      <button class="nav-x" aria-label="Close menu" onclick={() => (navOpen = false)}>✕</button>
     </div>
-    <div>
-      <h1>CARGO <span>MANIFEST</span></h1>
-      <div class="sub">SCU crate breakdown · route planner · ship loadout</div>
-    </div>
-    <div class="top-right">
-      <div class="hdr-status">
-        {#if !catalog.loaded}
-          <span class="hs-line">Loading reference data…</span>
-        {:else}
-          <span class="hs-line">· {catalog.ships.rows.length} ships ({catalog.ownedShips.length} owned)</span>
-          <span class="hs-line">· {catalog.commodities.rows.length} commodities</span>
-          <span class="hs-line">· {catalog.locations.rows.length} locations</span>
-        {/if}
-      </div>
-      <button class="icon-btn" title="Help" aria-label="Help" onclick={() => (helpOpen = true)}>?</button>
+
+    <Fleet {openGrid} />
+
+    <div class="side-foot">
+      <button class="ic" title="Help" aria-label="Help" onclick={() => (helpOpen = true)}>?</button>
       <div class="menu-wrap">
-        <button class="icon-btn" title="Menu" aria-haspopup="menu" aria-expanded={menuOpen}
+        <button class="ic" title="Menu" aria-haspopup="menu" aria-expanded={menuOpen}
           onclick={(e) => { e.stopPropagation(); menuOpen = !menuOpen; }}>⚙</button>
         {#if menuOpen}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <div class="menu" role="menu" tabindex="-1" onclick={(e) => e.stopPropagation()}>
-            <button role="menuitem" onclick={() => { menuOpen = false; openExport(); }}><span class="mi">⤓</span> Export Run (JSON)</button>
-            <button role="menuitem" onclick={() => { menuOpen = false; importInput.click(); }}><span class="mi">⤒</span> Import Run (JSON)</button>
+            <button role="menuitem" onclick={() => { menuOpen = false; openExport(); }}><span class="mi">⤓</span> Export run</button>
+            <button role="menuitem" onclick={() => { menuOpen = false; importInput.click(); }}><span class="mi">⤒</span> Import run</button>
             <button role="menuitem" onclick={() => { menuOpen = false; exportCsvs(); }}><span class="mi">▤</span> Export catalog CSVs</button>
+            <button role="menuitem" onclick={() => { menuOpen = false; openGrid(''); }}><span class="mi">▦</span> Edit ship data</button>
             <div class="sep"></div>
-            <button role="menuitem" onclick={() => { menuOpen = false; openGrid(''); }}><span class="mi">▦</span> Edit ship data…</button>
-            <div class="sep"></div>
-            <button role="menuitem" class="danger" onclick={() => { menuOpen = false; resetAll(); }}><span class="mi">⌫</span> Clear data &amp; load defaults</button>
+            <button role="menuitem" class="danger" onclick={() => { menuOpen = false; resetAll(); }}><span class="mi">⌫</span> Clear &amp; reset</button>
           </div>
         {/if}
       </div>
-      <input bind:this={importInput} type="file" accept="application/json" style="display:none"
-        onchange={(e) => { const f = e.currentTarget.files?.[0]; if (f) importRun(f); e.currentTarget.value = ''; }} />
+      <span class="local" title={storageOk ? 'Saved locally; nothing leaves your browser' : 'Browser storage unavailable'}>
+        <i class="dot" class:warn={!storageOk}></i>{storageOk ? 'LOCAL' : 'NO STORAGE'}
+      </span>
     </div>
-  </header>
+    <input bind:this={importInput} type="file" accept="application/json" style="display:none"
+      onchange={(e) => { const f = e.currentTarget.files?.[0]; if (f) importRun(f); e.currentTarget.value = ''; }} />
+  </aside>
 
-  <!-- 1 · Ship Fit Check (which hull to fly) -->
-  <Zone accent="var(--green)" num={1} title="Ship Fit Check" hint="which of your hulls fits the load · best fit pinned on top">
-    <Fleet {openGrid} />
-  </Zone>
+  <!-- backdrop for mobile nav -->
+  <button class="nav-backdrop" aria-label="Close menu" onclick={() => (navOpen = false)}></button>
 
-  <!-- 2 · Missions (per-mission rollup + ship assignment) -->
-  <Zone accent="var(--violet)" num={2} title="Missions" hint="per-mission totals · assign a ship to each mission to split the run">
-    <Missions />
-  </Zone>
+  <!-- ===== Workspace ===== -->
+  <main class="main">
+    <header class="work-head">
+      <button class="nav-toggle" aria-label="Menu" onclick={() => (navOpen = true)}>☰</button>
+      <input class="run-name" spellcheck="false" value={run.state.name}
+        oninput={(e) => run.setName(e.currentTarget.value)} aria-label="Manifest name" />
+      <div class="run-stat">
+        <span><b>{agg.scu.toLocaleString()}</b> SCU</span>
+        <span><b>{agg.crates}</b> crates</span>
+        {#if agg.leftover > 0}<span class="warn"><b>{agg.leftover}</b> unpacked</span>{/if}
+      </div>
+    </header>
 
-  <!-- 3 · Manifest / Trips (the working area) -->
-  <Zone accent="var(--cyan)" num={3} title="Manifest" hint="each trip has its own crate-size limit · a trip can carry several missions">
-    {#snippet actions()}
-      <button class="info-btn" title="About trips & crate packing" aria-label="About trips and crate packing"
-        onclick={(e) => { e.stopPropagation(); tripsInfo = true; }}>i</button>
-      <button class="btn add sm" onclick={() => run.addTrip()}>+ Add Trip</button>
-    {/snippet}
-    {#each run.state.sections as trip (trip.id)}
-      <TripPanel {trip} />
-    {/each}
-  </Zone>
+    <Zone accent="var(--c-overview)" title="Overview">
+      <Overview />
+    </Zone>
 
-  <!-- 4 · Loadout Summary -->
-  <Zone accent="var(--amber)" num={4} title="Loadout Summary" hint="every trip combined, for picking a hull">
-    <Summary />
-  </Zone>
+    <Zone accent="var(--c-manifest)" title="Manifest">
+      {#snippet actions()}
+        <button class="btn ghost sm" onclick={() => run.addTrip()}>+ Trip</button>
+      {/snippet}
+      {#each run.state.sections as trip (trip.id)}
+        <TripPanel {trip} />
+      {/each}
+    </Zone>
 
-  <!-- 4 · Pick Up | 5 · Drop Off — side by side (collect on the left, deliver on the right) -->
-  <Routes />
+    <Routes />
 
-  <datalist id="commodityList">{#each commodityList as n}<option value={n}></option>{/each}</datalist>
-  <datalist id="locationList">{#each locationList as n}<option value={n}></option>{/each}</datalist>
-  <datalist id="shipList">{#each shipList as n}<option value={n}></option>{/each}</datalist>
-
-  <footer class="page-foot">
-    <span class="ok">●</span> Your data stays in this browser — nothing is sent to the server.
-    {storageOk ? ' Saved locally; survives refresh.' : ' ⚠ Browser storage unavailable — use Export Run (⚙ menu) to keep a copy.'}
-  </footer>
+    <datalist id="commodityList">{#each commodityList as n}<option value={n}></option>{/each}</datalist>
+    <datalist id="locationList">{#each locationList as n}<option value={n}></option>{/each}</datalist>
+    <datalist id="shipList">{#each shipList as n}<option value={n}></option>{/each}</datalist>
+  </main>
 </div>
 
 {#if gridOpen}
   <ShipGridEditor initialName={gridShip} onClose={() => (gridOpen = false)} />
 {/if}
 
-{#if tripsInfo}
-  <Modal title="Trips & crate packing" onClose={() => (tripsInfo = false)}>
-    <p>A <b>Trip</b> is one physical haul — one load on one ship. Add a trip per leg (e.g. “Going”, “Return”).</p>
-    <p>Crates fill <b>largest-first</b>; the leftover cascades down to the next enabled size. Each commodity packs into its <b>own</b> crates — two different goods never share a box.</p>
-    <p>Tag each line with a <b>mission #</b> (1–10) to color-code objectives; the same number always gets the same color, even across trips.</p>
-  </Modal>
-{/if}
-
 {#if helpOpen}
-  <Modal title="How to use Cargo Manifest" onClose={() => (helpOpen = false)}>
-    <p>Plan a multi-stop Star Citizen haul: break cargo into SCU crates, see which of your ships fits, and track every pickup and drop-off.</p>
-    <ol>
-      <li><b>Add a Trip</b> for each physical haul (one ship-load). Rename it — e.g. “Going”, “Return”.</li>
-      <li><b>Choose crate sizes</b> for that trip: click a size to switch it <b>ON/OFF</b>. Off means that box size isn’t allowed (e.g. a “16 SCU and under” mission).</li>
-      <li><b>Add a commodity line</b>: a mission # (1–10, which color-codes it), the commodity, total SCU, and From / To. It auto-breaks into crates, largest-first.</li>
-      <li><b>Ship Fit Check</b> (top): add the ships you own; the smallest hull that fits is pinned as ★ Best Fit.</li>
-      <li><b>Pick Up / Drop Off</b>: tick <b>Drop Off</b> when delivered (completes the line); tick <b>Pick Up</b> just to remember you’ve already collected that cargo.</li>
+  <Modal title="How to use" onClose={() => (helpOpen = false)}>
+    <ol class="help">
+      <li><b>Add a trip</b> per ship-load. Tag each cargo line with a <b>mission #</b> (1–10) — it color-codes the run.</li>
+      <li><b>Crate sizes</b>: click a size to toggle it on/off for that trip. Crates fill largest-first; each commodity packs into its own boxes.</li>
+      <li><b>Fleet</b> (left): add ships you own; the smallest that fits the load is starred. Click a ship to set its <b>cargo grid</b> (max box size + realistic SCU).</li>
+      <li><b>Missions</b> (Overview): per-mission totals; assign a hull to each mission to split a run across ships.</li>
+      <li><b>Pick Up / Drop Off</b>: tick Drop Off when delivered; tick Pick Up just to mark cargo collected.</li>
     </ol>
-    <p class="eg"><b>Example:</b> 96 SCU of Titanium from <i>Port Tressler → Area18</i>, mission 1. With every size on it packs as <b>3×32</b>. Turn off the 32 and it becomes <b>4×24</b>.</p>
-    <p>Everything saves in your browser automatically. Use the ⚙ menu to Export/Import a run as JSON, or export the catalog CSVs.</p>
+    <p class="muted">Everything saves in your browser — nothing is sent to a server. Use ⚙ to export/import a run or the catalog CSVs.</p>
   </Modal>
 {/if}
 
 {#if exportOpen}
-  <Modal title="Export Run" onClose={() => (exportOpen = false)}>
+  <Modal title="Export run" onClose={() => (exportOpen = false)}>
     <label class="modal-label" for="exportName">Manifest name</label>
     <input id="exportName" class="modal-input" bind:value={exportName} spellcheck="false"
       onkeydown={(e) => { if (e.key === 'Enter') doExport(); }} />
-    <p style="margin-top:10px">Saved as a <code>.json</code> file you can re-import later or on another device.</p>
     <div class="modal-actions">
       <button class="btn" onclick={() => (exportOpen = false)}>Cancel</button>
       <button class="btn accent" onclick={doExport}>Export JSON</button>

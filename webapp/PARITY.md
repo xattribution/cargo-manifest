@@ -8,6 +8,24 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.8 — dispatch-desk redesign (sidebar + light workspace)
+
+- **Full visual redesign** away from the dark sci-fi look: a **dark operations sidebar**
+  (brand + Fleet management, persistent) beside a **light "manila/paper" workspace** with
+  solid matte section-header fills (no transparency overlays, no clip-paths/glow). Reads like
+  a logistics dispatch tool.
+- **Overview section** = Missions + Loadout Summary merged (replaces the separate Missions and
+  Loadout zones; `Overview.svelte`, old `Summary.svelte` removed).
+- **Mission crate breakdown is now column-based** (one column per crate size, like the trips
+  table) instead of `#×#` text.
+- **Fleet moved to the sidebar** and simplified: each ship is `fit-dot · name · SCU` at a
+  glance; click to expand capacity edit / grid summary / remove. Compact fit-mode toggle
+  (Per mission / Largest trip / Combined) + add-ship row at the bottom.
+- **Sentences removed from the page** — all hints/intro/mini-notes folded into the `?` help
+  modal; section headers carry only short labels. Trip-row mission color is now a left color
+  bar on the light row (was a full dark fill).
+- Responsive: sidebar collapses to an off-canvas drawer (☰) under 900px.
+
 ## v0.7 — missions, card reorder, SCADA restyle
 
 - **Industrial / SCADA restyle**: flat charcoal surfaces, hairline gridline texture, square
