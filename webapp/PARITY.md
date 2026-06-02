@@ -1,8 +1,9 @@
 # Webapp — Feature Parity & Decision Log
 
-Tracks the Docker-hosted **webapp** rewrite (Svelte 5 + Vite + TS) against the original
-single-file self-host app (`../cargo-manager.html`, documented in `../README.md` and
-`../ARCHITECTURE.md`). When a behaviour is unclear, the single-file app is the reference.
+Dated changelog + decision log for the Docker-hosted **webapp** (Svelte 5 + Vite + TS).
+For *how the app is built and why* (the full architecture/autopsy), see
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) — read that first before editing. This file is the
+chronological record of what changed and the reasoning behind each call.
 
 **Legend:** ✅ done · 🟡 in progress · ⛔ intentionally dropped (with reason) · 🔵 changed by design · ⬜ not started
 
@@ -318,11 +319,15 @@ Materialized catalog = baseline ⟕ delta. "Clear data & load defaults" removes 
 
 ---
 
-## Intentional deviations from the single-file app
-1. **No folder write-back.** Hosted catalog is read-only; customisations persist as a local delta. (Self-host single-file app still has full File System Access.)
-2. **Clear expands to "clear + load defaults"** per request.
-3. **Touch-friendly drag/resize** planned via Pointer Events (the original uses HTML5 DnD, which doesn't work on mobile).
+## Core design choices (early)
+1. **No folder write-back.** Hosted catalog baseline is read-only; user customisations persist as a local delta.
+2. **Clear = "clear + load defaults".**
+3. **Touch-friendly drag/resize** via Pointer Events (works on mobile).
 4. **Baseline updates are non-destructive**: shipping new SCU values updates everyone's defaults while keeping their owned/custom delta.
+
+> Historical note: early entries below compare against the original single-file
+> `cargo-manager.html`, which is now deprecated/removed (archived in a fork). The webapp is
+> the only maintained app; references to "the single-file app / the original" are history.
 
 ## Phase 2 — done (v0.4)
 - ✅ **Column resize** drag handles (pointer-based, shared width in `state.colW`).

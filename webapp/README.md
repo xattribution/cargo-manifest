@@ -1,11 +1,28 @@
 # Cargo Manifest — Webapp (Docker)
 
-A snappy, self-contained **webapp build** of the Star Citizen hauling planner, meant to be
-hosted (homelab, VPS, LAN) so several people can use it from a browser. It is a separate
-artifact from the root single-file `cargo-manager.html` self-host tool — that one is
-untouched and still works by double-clicking.
+A snappy, self-hostable Star Citizen hauling planner (homelab, VPS, LAN) — several people
+can use it from a browser, with no server-side data.
 
 Built with **Svelte 5 + Vite + TypeScript**, served as static files by **nginx**.
+
+> **Contributing / picking this up?** Read **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** first —
+> it's the exhaustive map of how everything fits together and what *not* to break.
+> **[`PARITY.md`](./PARITY.md)** is the dated changelog + decision log.
+
+## Features
+
+- **Manifest grid** — per-trip cargo lines (mission #, commodity, SCU, from, to) that
+  auto-break into SCU crates (32/24/16/8/4/2/1), largest-first, per-trip box limits.
+- **Missions register** — per-mission rollup (SCU, crate breakdown, pick→drop, reward in
+  aUEC); assign a ship per mission with a grid-aware fit check; reorder / delete / add.
+- **Fleet & Ship Fit** — your owned ships in the sidebar; "best fit" pinned; realistic
+  capacity via per-ship **cargo grids** (max box size + arrangement), not just nominal SCU.
+- **Pick Up / Drop Off** — route cards grouped by source / destination with completion
+  tracking (pick-up = visual reminder, drop-off = real completion).
+- **Screenshot Import** — paste/drop a screenshot of a contract's Primary Objectives; in-
+  browser OCR + fuzzy catalog matching fills a mission for you to review and confirm.
+- **Light / dark theme**, fast keyboard entry (directional Tab, Ctrl+Arrow), JSON run
+  export/import, catalog CSV export.
 
 ## Privacy model (important)
 
@@ -17,8 +34,8 @@ Built with **Svelte 5 + Vite + TypeScript**, served as static files by **nginx**
   (`ships/commodities/locations`); your browser stores only the *delta* on top of it. That
   keeps local data tiny and lets baseline updates (new ships, patched SCU values) flow
   through without wiping your customizations.
-- **Clear my data & load defaults** (top bar *Clear*, or the button in the data bar) wipes
-  your local run + delta and returns to the bundled defaults.
+- **Clear & reset** (sidebar **⚙** menu → *Clear & reset*) wipes your local run + delta and
+  returns to the bundled defaults.
 
 ## Run it with Docker
 
@@ -26,18 +43,21 @@ Built with **Svelte 5 + Vite + TypeScript**, served as static files by **nginx**
 # from the repo root or this folder:
 cd webapp
 docker compose up -d --build
-# open http://localhost:8080
+# open http://localhost:8081
 ```
 
-To stop: `docker compose down`. Change the published port by editing `docker-compose.yml`
-(`"8080:80"`).
+To stop: `docker compose down`. The container runs **unprivileged** (user 1000) and nginx
+listens on **8080 inside**; compose publishes it on host **8081** (`"8081:8080"`). Change the
+host port by editing `docker-compose.yml`. If you change the *internal* port you must update
+all three: `nginx.conf` `listen`, `Dockerfile` `EXPOSE`, and the compose container port.
 
 ### Plain docker (no compose)
 
 ```bash
 # build context must be the repo root so the baseline /data CSVs are included
 docker build -f webapp/Dockerfile -t cargo-manifest-webapp .
-docker run -d -p 8080:80 --name cargo-manifest cargo-manifest-webapp
+docker run -d -p 8081:8080 --user 1000:1000 --name cargo-manifest cargo-manifest-webapp
+# open http://localhost:8081
 ```
 
 ## Develop locally
@@ -94,6 +114,7 @@ rebuild for everyone.
 
 ## Status
 
-Feature parity with the single-file app, plus the hosted-mode changes (client-only
-persistence, clear/defaults). Progress and intentional deviations are tracked in
+Actively developed; this is the primary app. It has moved well beyond the original single-
+file tool (missions, ship cargo grids, screenshot OCR import, theming). Architecture is in
+[`ARCHITECTURE.md`](./ARCHITECTURE.md); the dated changelog + design decisions are in
 [`PARITY.md`](./PARITY.md).
