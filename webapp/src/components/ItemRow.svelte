@@ -34,12 +34,12 @@
   </td>
   <td class="m-cell">
     <input class="m-num" type="number" min="1" max="10" title="Mission # (1–10) — same number = same color"
-      value={item.mission} oninput={(e) => setMission(e.currentTarget.value)} />
+      data-f="mission" data-row={item.id} value={item.mission} oninput={(e) => setMission(e.currentTarget.value)} />
   </td>
-  <td><Field bind:value={item.commodity} list="commodityList" cat="commodities" placeholder="e.g. Pressurized Ice" dataF="commodity" /></td>
-  <td><Field bind:value={item.scu} cls="scu" placeholder="0" inputmode="numeric" /></td>
-  <td><Field bind:value={item.source} list="locationList" cat="locations" placeholder="pickup" /></td>
-  <td><Field bind:value={item.destination} list="locationList" cat="locations" placeholder="dropoff" /></td>
+  <td><Field bind:value={item.commodity} list="commodityList" cat="commodities" placeholder="commodity" dataF="commodity" dataRow={item.id} /></td>
+  <td><Field bind:value={item.scu} cls="scu" placeholder="0" inputmode="numeric" dataF="scu" dataRow={item.id} /></td>
+  <td><Field bind:value={item.source} list="locationList" cat="locations" placeholder="pickup" dataF="source" dataRow={item.id} /></td>
+  <td><Field bind:value={item.destination} list="locationList" cat="locations" placeholder="dropoff" dataF="destination" dataRow={item.id} /></td>
   {#each sizes as s}
     <td class="szcell" data-size={s}>{bd.counts[s] ? bd.counts[s] : ''}</td>
   {/each}

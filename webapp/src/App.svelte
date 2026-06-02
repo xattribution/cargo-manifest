@@ -8,6 +8,7 @@
   import { datalistNames } from './lib/format';
   import { aggregate, flatEntries } from './lib/crate';
   import { theme } from './lib/theme.svelte';
+  import { prefs } from './lib/prefs.svelte';
   import type { Cat } from './lib/types';
 
   import Zone from './components/Zone.svelte';
@@ -85,6 +86,15 @@
       <button class="nav-x" aria-label="Close menu" onclick={() => (navOpen = false)}>✕</button>
     </div>
 
+    <div class="run-strip">
+      <div class="run-name-disp" title={run.state.name}>{run.state.name}</div>
+      <div class="run-stat">
+        <span><b>{agg.scu.toLocaleString()}</b> SCU</span>
+        <span><b>{agg.crates}</b> crates</span>
+        {#if agg.leftover > 0}<span class="warn"><b>{agg.leftover}</b> unpacked</span>{/if}
+      </div>
+    </div>
+
     <Fleet {openGrid} />
 
     <div class="side-foot">
@@ -118,16 +128,7 @@
 
   <!-- ===== Workspace ===== -->
   <main class="main">
-    <header class="work-head">
-      <button class="nav-toggle" aria-label="Menu" onclick={() => (navOpen = true)}>☰</button>
-      <input class="run-name" spellcheck="false" value={run.state.name}
-        oninput={(e) => run.setName(e.currentTarget.value)} aria-label="Manifest name" />
-      <div class="run-stat">
-        <span><b>{agg.scu.toLocaleString()}</b> SCU</span>
-        <span><b>{agg.crates}</b> crates</span>
-        {#if agg.leftover > 0}<span class="warn"><b>{agg.leftover}</b> unpacked</span>{/if}
-      </div>
-    </header>
+    <button class="nav-toggle" aria-label="Menu" onclick={() => (navOpen = true)}>☰</button>
 
     <Zone accent="var(--c-overview)" title="Overview">
       <Overview />
@@ -135,6 +136,8 @@
 
     <Zone accent="var(--c-manifest)" title="Manifest">
       {#snippet actions()}
+        <button class="btn ghost sm" title="Tab key direction in the grid"
+          onclick={() => prefs.toggleTabDir()}>Tab {prefs.tabDir === 'down' ? '↓' : '→'}</button>
         <button class="btn ghost sm" onclick={() => run.addTrip()}>+ Trip</button>
       {/snippet}
       {#each run.state.sections as trip (trip.id)}

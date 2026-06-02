@@ -1,5 +1,6 @@
 <script lang="ts">
   import { run } from '../stores/run.svelte';
+  import { prefs } from '../lib/prefs.svelte';
   import { aggregate, enabledDesc, ALL_SIZES } from '../lib/crate';
   import ItemRow from './ItemRow.svelte';
   import type { Trip } from '../lib/types';
@@ -9,6 +10,65 @@
   const sizes = $derived(enabledDesc(trip.sizes));
   const sub = $derived(aggregate(trip.items.map((it) => ({ it, sizes: trip.sizes }))));
   const colCount = $derived(6 + sizes.length + 3);
+
+  // distinct used values in this trip, for the click-to-fill reference rail
+  const usedCommodities = $derived([...new Set(trip.items.map((i) => i.commodity.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b)));
+  const usedLocations = $derived([...new Set(trip.items.flatMap((i) => [i.source.trim(), i.destination.trim()]).filter(Boolean))].sort((a, b) => a.localeCompare(b)));
+
+  let tableEl: HTMLTableElement;
+  // The editable, navigable columns in visual order.
+  const NAV_COLS = ['mission', 'commodity', 'scu', 'source', 'destination'];
+
+  // Fill the currently-focused field (or the last-focused one) with a reference value,
+  // and copy it to the clipboard so paste still works elsewhere.
+  function quickFill(val: string) {
+    const el = document.activeElement as HTMLElement | null;
+    const inp = el && (el.tagName === 'INPUT') && tableEl?.contains(el) ? (el as HTMLInputElement) : null;
+    if (inp) {
+      const id = inp.getAttribute('data-row'); const f = inp.getAttribute('data-f');
+      const it = trip.items.find((x) => x.id === id);
+      if (it && f && f in it) { (it as any)[f] = val; inp.value = val; inp.dispatchEvent(new Event('input', { bubbles: true })); }
+    }
+    try { navigator.clipboard?.writeText(val); } catch { /* ignore */ }
+  }
+
+  // Directional Tab / Enter navigation across the editable grid.
+  function focusCell(rowId: string, field: string) {
+    const sel = `[data-row="${rowId}"][data-f="${field}"]`;
+    const el = tableEl?.querySelector<HTMLElement>(sel);
+    if (el) { el.focus(); (el as HTMLInputElement).select?.(); }
+  }
+  function onGridKeydown(e: KeyboardEvent) {
+    const t = e.target as HTMLElement;
+    if (!t || t.tagName !== 'INPUT') return;
+    const field = t.getAttribute('data-f'); const rowId = t.getAttribute('data-row');
+    if (!field || !rowId || !NAV_COLS.includes(field)) return;
+    const isTab = e.key === 'Tab';
+    const isEnter = e.key === 'Enter';
+    if (!isTab && !isEnter) return;
+    const rows = trip.items;
+    const r = rows.findIndex((x) => x.id === rowId);
+    const c = NAV_COLS.indexOf(field);
+    if (r < 0) return;
+    // Enter always moves vertically; Tab follows the chosen primary direction.
+    const vertical = isEnter || prefs.tabDir === 'down';
+    const back = e.shiftKey;
+    e.preventDefault();
+    if (vertical) {
+      let nr = r + (back ? -1 : 1);
+      if (nr >= rows.length) { run.addItem(trip.id); nr = rows.length; setTimeout(() => focusCell(run.state.sections.find((s) => s.id === trip.id)!.items[nr].id, field), 0); return; }
+      if (nr < 0) { // wrap to previous column, last row
+        const nc = (c - 1 + NAV_COLS.length) % NAV_COLS.length;
+        focusCell(rows[rows.length - 1].id, NAV_COLS[nc]); return;
+      }
+      focusCell(rows[nr].id, field);
+    } else {
+      let nc = c + (back ? -1 : 1);
+      if (nc >= NAV_COLS.length) { nc = 0; const nr = r + 1; if (nr >= rows.length) { run.addItem(trip.id); setTimeout(() => focusCell(run.state.sections.find((s) => s.id === trip.id)!.items[nr].id, NAV_COLS[0]), 0); return; } focusCell(rows[nr].id, NAV_COLS[0]); return; }
+      if (nc < 0) { nc = NAV_COLS.length - 1; const nr = r - 1; if (nr < 0) return; focusCell(rows[nr].id, NAV_COLS[nc]); return; }
+      focusCell(rows[r].id, NAV_COLS[nc]);
+    }
+  }
 
   // fixed column widths (the resizable three come from run.state.colW)
   const FX = { drag: 24, m: 30, scu: 70, size: 42, crates: 62, done: 28, del: 34 };
@@ -85,8 +145,10 @@
       {/each}
     </div>
 
+    <div class="trip-body">
     <div class="tbl-scroll">
-      <table class="tbl" style="table-layout:fixed;width:{tableW}px">
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+      <table class="tbl" style="table-layout:fixed;width:{tableW}px" bind:this={tableEl} onkeydown={onGridKeydown}>
         <colgroup>
           <col style="width:{FX.drag}px" /><col style="width:{FX.m}px" />
           <col style="width:{run.state.colW.commodity}px" /><col style="width:{FX.scu}px" />
@@ -121,8 +183,26 @@
       </table>
     </div>
 
+      {#if usedCommodities.length || usedLocations.length}
+        <aside class="ref-rail" aria-label="Quick fill">
+          {#if usedCommodities.length}
+            <div class="ref-grp">
+              <div class="ref-h">Commodities</div>
+              {#each usedCommodities as v}<button type="button" class="ref-chip" title="Fill focused cell + copy" onclick={() => quickFill(v)}>{v}</button>{/each}
+            </div>
+          {/if}
+          {#if usedLocations.length}
+            <div class="ref-grp">
+              <div class="ref-h">Locations</div>
+              {#each usedLocations as v}<button type="button" class="ref-chip" title="Fill focused cell + copy" onclick={() => quickFill(v)}>{v}</button>{/each}
+            </div>
+          {/if}
+        </aside>
+      {/if}
+    </div>
+
     <div class="add-row-wrap">
-      <button class="btn add" onclick={() => run.addItem(trip.id)}>+ Add Commodity</button>
+      <button class="btn ghost sm" onclick={() => run.addItem(trip.id)}>+ Add Commodity</button>
     </div>
   </div>
 </div>
