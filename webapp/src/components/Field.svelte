@@ -12,6 +12,7 @@
     cls = '',
     cat = undefined,
     dataF = undefined,
+    dataRow = undefined,
     inputmode = undefined,
     oninput = undefined,
     onkeydown = undefined,
@@ -22,6 +23,7 @@
     cls?: string;
     cat?: Cat;
     dataF?: string;
+    dataRow?: string;
     inputmode?: 'numeric' | 'text';
     oninput?: (v: string) => void;
     onkeydown?: (e: KeyboardEvent) => void;
@@ -43,6 +45,7 @@
     {list}
     inputmode={inputmode}
     data-f={dataF}
+    data-row={dataRow}
     bind:value
     oninput={() => oninput?.(value)}
     onkeydown={(e) => onkeydown?.(e)}

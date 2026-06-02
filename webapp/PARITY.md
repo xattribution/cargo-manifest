@@ -8,6 +8,19 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.10 — sidebar run info, grid QOL (quick-fill + tab direction)
+
+- **Removed the on-page manifest-name box**; the run name + live totals now live in the
+  sidebar under the brand. The name is edited in the Export dialog. Overview is the page top
+  (the sticky work-head is gone; mobile gets a small floating ☰).
+- **Quick-fill rail** right of each trip grid: the distinct commodities/locations already used
+  in that trip as click-to-fill chips — clicking drops the value into the focused cell and
+  copies it to the clipboard (paste still works).
+- **Directional grid navigation**: Tab moves by a chosen primary direction (vertical by
+  default, matching manifest entry), Shift+Tab reverses, Enter always moves down; a
+  **Tab ↓/→ toggle** in the Manifest header switches it (persisted). Tabbing past the last row
+  auto-adds a commodity line. `lib/prefs.svelte.ts`.
+
 ## v0.9 — contrast pass, distinct completion, dark mode
 
 - **Light theme toned down** (warmer manila, less stark white); table headers get a tinted
