@@ -2,6 +2,7 @@
   import { run } from '../stores/run.svelte';
   import { catalog } from '../stores/catalog.svelte';
   import { fitTarget, maxCrateSize } from '../lib/crate';
+  import { missionRollups } from '../lib/missions';
   import { nameKey, scuKeyOf, shipCap, shipGridOf } from '../lib/catalog';
   import { ALL_SIZES } from '../lib/crate';
   import Field from './Field.svelte';
@@ -9,7 +10,17 @@
 
   let { openGrid }: { openGrid: (name: string) => void } = $props();
 
-  const tgt = $derived(fitTarget(run.state.sections, run.state.fitMode));
+  // In 'mission' mode the per-mission assignment lives in the Missions panel; here we size
+  // the global fleet for the single largest mission (parallel to 'largest trip').
+  const tgt = $derived.by(() => {
+    if (run.state.fitMode === 'mission') {
+      const rs = missionRollups(run.state.sections).filter((r) => r.agg.scu > 0);
+      if (!rs.length) return { scu: 0, label: 'largest mission', detail: '', totals: {} as Record<number, number> };
+      const top = rs.reduce((m, r) => (r.agg.scu > m.agg.scu ? r : m));
+      return { scu: top.agg.scu, label: 'largest mission', detail: `M${top.mission}`, totals: top.agg.totals };
+    }
+    return fitTarget(run.state.sections, run.state.fitMode);
+  });
   const total = $derived(tgt.scu);
   const loadMax = $derived(maxCrateSize(tgt.totals));
 
@@ -82,6 +93,7 @@
       {/if}
     </div>
     <div class="seg">
+      <button class="seg-btn" class:active={run.state.fitMode === 'mission'} onclick={() => run.setFitMode('mission')}>Per mission</button>
       <button class="seg-btn" class:active={run.state.fitMode === 'largest'} onclick={() => run.setFitMode('largest')}>Largest trip</button>
       <button class="seg-btn" class:active={run.state.fitMode === 'combined'} onclick={() => run.setFitMode('combined')}>Combined total</button>
     </div>

@@ -140,6 +140,24 @@ export function shipGridOf(row: CatalogRow): ShipGridInfo {
   return { maxSize, grid, sum, hasGrid };
 }
 
+export type FitStatus = 'none' | 'best' | 'fits' | 'short' | 'oversize';
+export interface FitResult { status: FitStatus; cap: number; short: number; maxSize: number | null; hasGrid: boolean; }
+
+// Grid-aware fit of one ship row against a load (total SCU + its largest crate size).
+// Realistic capacity = grid sum when present, else nominal SCU; oversize = load has a crate
+// bigger than the ship's max container size.
+export function shipFit(row: CatalogRow, loadScu: number, loadMaxSize: number): FitResult {
+  const g = shipGridOf(row);
+  const sk = scuKeyOf({ header: Object.keys(row), rows: [row] });
+  const cap = g.hasGrid ? g.sum : Number(row[sk]) || 0;
+  if (loadScu <= 0) return { status: 'none', cap, short: 0, maxSize: g.maxSize, hasGrid: g.hasGrid };
+  if (g.hasGrid && g.maxSize != null && loadMaxSize > 0 && loadMaxSize > g.maxSize) {
+    return { status: 'oversize', cap, short: 0, maxSize: g.maxSize, hasGrid: g.hasGrid };
+  }
+  if (cap >= loadScu) return { status: 'fits', cap, short: 0, maxSize: g.maxSize, hasGrid: g.hasGrid };
+  return { status: 'short', cap, short: loadScu - cap, maxSize: g.maxSize, hasGrid: g.hasGrid };
+}
+
 export function materializeSimple(baseline: Category, added: CatalogRow[]): Category {
   const nk = nameKey(baseline);
   const rows = baseline.rows.slice();

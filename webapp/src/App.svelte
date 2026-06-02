@@ -13,6 +13,7 @@
   import Summary from './components/Summary.svelte';
   import Routes from './components/Routes.svelte';
   import Fleet from './components/Fleet.svelte';
+  import Missions from './components/Missions.svelte';
   import Modal from './components/Modal.svelte';
   import ShipGridEditor from './components/ShipGridEditor.svelte';
 
@@ -128,8 +129,13 @@
     <Fleet {openGrid} />
   </Zone>
 
-  <!-- 2 · Trips (the working area) -->
-  <Zone accent="var(--cyan)" num={2} title="Trips" hint="each trip has its own crate-size limit · a trip can carry several missions">
+  <!-- 2 · Missions (per-mission rollup + ship assignment) -->
+  <Zone accent="var(--violet)" num={2} title="Missions" hint="per-mission totals · assign a ship to each mission to split the run">
+    <Missions />
+  </Zone>
+
+  <!-- 3 · Manifest / Trips (the working area) -->
+  <Zone accent="var(--cyan)" num={3} title="Manifest" hint="each trip has its own crate-size limit · a trip can carry several missions">
     {#snippet actions()}
       <button class="info-btn" title="About trips & crate packing" aria-label="About trips and crate packing"
         onclick={(e) => { e.stopPropagation(); tripsInfo = true; }}>i</button>
@@ -140,8 +146,8 @@
     {/each}
   </Zone>
 
-  <!-- 3 · Loadout Summary -->
-  <Zone accent="var(--amber)" num={3} title="Loadout Summary" hint="every trip combined, for picking a hull">
+  <!-- 4 · Loadout Summary -->
+  <Zone accent="var(--amber)" num={4} title="Loadout Summary" hint="every trip combined, for picking a hull">
     <Summary />
   </Zone>
 

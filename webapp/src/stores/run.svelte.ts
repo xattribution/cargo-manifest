@@ -25,11 +25,15 @@ const OLD_DEFAULT_COLW = { commodity: 300, source: 200, destination: 200 };
 function defaultState(): RunState {
   return {
     name: 'Untitled Run',
-    fitMode: 'largest',
+    fitMode: 'mission',
     dropOpen: true,
     pickOpen: true,
     colW: { ...DEFAULT_COLW },
     sections: [freshTrip('Trip A')],
+    missionShips: {},
+    missionNames: {},
+    pickOrder: [],
+    dropOrder: [],
   };
 }
 
@@ -38,7 +42,11 @@ export function migrate(saved: unknown): RunState {
   if (!saved || typeof saved !== 'object') return s;
   const o = saved as Record<string, any>;
   s.name = o.name || s.name;
-  s.fitMode = o.fitMode === 'combined' ? 'combined' : 'largest';
+  s.fitMode = o.fitMode === 'combined' ? 'combined' : o.fitMode === 'largest' ? 'largest' : 'mission';
+  s.missionShips = o.missionShips && typeof o.missionShips === 'object' ? o.missionShips : {};
+  s.missionNames = o.missionNames && typeof o.missionNames === 'object' ? o.missionNames : {};
+  s.pickOrder = Array.isArray(o.pickOrder) ? o.pickOrder : [];
+  s.dropOrder = Array.isArray(o.dropOrder) ? o.dropOrder : [];
   s.colW = Object.assign({ ...DEFAULT_COLW }, o.colW || {});
   // One-time: if the user never resized (still on the old defaults), adopt the new tighter ones.
   if (o.colW && o.colW.commodity === OLD_DEFAULT_COLW.commodity && o.colW.source === OLD_DEFAULT_COLW.source && o.colW.destination === OLD_DEFAULT_COLW.destination) {
@@ -76,7 +84,29 @@ function createRun() {
     get state() { return state; },
 
     setName(n: string) { state.name = n; },
-    setFitMode(m: 'largest' | 'combined') { state.fitMode = m; },
+    setFitMode(m: 'mission' | 'largest' | 'combined') { state.fitMode = m; },
+    setMissionShip(mission: number, ship: string) {
+      if (ship) state.missionShips[mission] = ship;
+      else delete state.missionShips[mission];
+    },
+    setMissionName(mission: number, name: string) {
+      if (name.trim()) state.missionNames[mission] = name.trim();
+      else delete state.missionNames[mission];
+    },
+    // Persist a manual card order for a column (list of group keys, top-to-bottom).
+    setCardOrder(which: 'pick' | 'drop', keys: string[]) {
+      if (which === 'pick') state.pickOrder = keys;
+      else state.dropOrder = keys;
+    },
+    moveCard(which: 'pick' | 'drop', fromKey: string, toIndex: number, currentKeys: string[]) {
+      const keys = currentKeys.slice();
+      const from = keys.indexOf(fromKey);
+      if (from < 0) return;
+      const [moved] = keys.splice(from, 1);
+      keys.splice(Math.max(0, Math.min(keys.length, toIndex)), 0, moved);
+      if (which === 'pick') state.pickOrder = keys;
+      else state.dropOrder = keys;
+    },
     toggleDrop() { state.dropOpen = !state.dropOpen; },
     togglePick() { state.pickOpen = !state.pickOpen; },
     setColW(key: 'commodity' | 'source' | 'destination', px: number) {
