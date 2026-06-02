@@ -26,18 +26,21 @@ export interface ParsedMission {
   raw: string;
 }
 
-// strip a trailing location qualifier the catalog never carries
+// strip trailing location qualifiers (never in the catalog) and OCR column-divider junk
 function cleanLoc(s: string): string {
   return s
-    .replace(/\bat\b.*$/i, '')            // "... at Hurston's L3 Lagrange point"
-    .replace(/\babove\b.*$/i, '')         // "Everus Harbor above Hurston"
-    .replace(/\bon Hurston\b.*$/i, '')    // "... on Hurston"
+    .replace(/\bat\b.*$/i, '')               // "... at Hurston's L3 Lagrange point"
+    .replace(/\babove\b.*$/i, '')            // "Everus Harbor above Hurston"
+    .replace(/\bon\s+Hurston\b.*$/i, '')     // "... on Hurston"
+    .replace(/\bin\s+[A-Z][a-z]+.*$/i, '')   // "Teasa Spaceport in Lorville"
+    .replace(/[|<>$_]+/g, ' ')               // OCR column-divider / glyph noise
+    .replace(/\s+[A-Za-z]\s*$/,'')           // dangling single stray letter ("... | I")
     .replace(/[.,]\s*$/, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
 function cleanCommodity(s: string): string {
-  return s.replace(/[.,]\s*$/, '').replace(/\s+/g, ' ').trim();
+  return s.replace(/[.,]\s*$/, '').replace(/[|<>$]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 // OCR commonly splits an objective across 2 lines and may drop the trailing period.
@@ -47,16 +50,18 @@ function sentences(text: string): string[] {
   return text
     .replace(/\r/g, '')
     .replace(/\n+/g, ' ')                              // flatten wraps
-    .replace(/\s+(Deliver|Collect)\b/gi, '\n$1')        // clause boundary before keyword
+    .replace(/([.])\s+/g, '$1\n')                       // break on sentence ends
+    .replace(/\s+(Deliver|Collect)\b/gi, '\n$1')        // and before each keyword
     .split('\n')
     .map((s) => s.trim())
     .filter(Boolean);
 }
 
 // "Deliver 0/85 SCU of ..." — SCU is the number AFTER the slash (0 = amount delivered so far).
-// Tolerate OCR noise around the slash ("0 / 85", "0|85") and an optional stray space in digits.
-const DELIVER = /deliver\s+\d+\s*[/|]\s*(\d+)\s*scu\s+of\s+(.+?)\s+to\s+(.+?)[.]?$/i;
-const COLLECT = /collect\s+(.+?)\s+from\s+(.+?)[.]?$/i;
+// Capture commodity/destination as runs WITHOUT a period so trailing flavor text (e.g. the
+// Details column bleeding in via OCR) can't contaminate the fields. Tolerate slash OCR noise.
+const DELIVER = /deliver\s+\d+\s*[/|]\s*(\d+)\s*scu\s+of\s+([^.]+?)\s+to\s+([^.]+)/i;
+const COLLECT = /collect\s+([^.]+?)\s+from\s+([^.]+)/i;
 const BOX = /(\d+)\s*scu\s*(?:or\s*(?:smaller|less|below)|in\s*size|or\s*smaller)/i;
 const BOX2 = /(?:no\s*larger\s*than|up\s*to|at\s*most[^.]*?)\s*(\d+)\s*scu/i;
 // Reward: anchor on the word "Reward" then the first number (the ¤ glyph is unreliable —
