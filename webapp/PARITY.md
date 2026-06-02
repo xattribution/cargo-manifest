@@ -8,6 +8,19 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.15 — Screenshot Import: wider UI, crop fix, suggestions sidebar
+
+- Renamed to **Screenshot Import**; modal widened (`Modal wide`) so location/commodity names
+  aren't truncated and tall missions don't need scrolling.
+- **Crop alignment fixed**: replaced the CSS-mask dim (which didn't line up with the handles)
+  with four exact shade rectangles flush to the selection.
+- **Example & instructions** expander at the top with a labeled diagram of what to capture.
+- **+ Add row** and per-row delete in the review table (for missions OCR splits oddly).
+- **Suggestions sidebar** ("Not in your catalog"): lists each distinct unresolved
+  commodity/location once; edit the name (or keep it) and **Add & apply** adds it to the
+  catalog *and renames every matching row at once* — "update one, update them all". Plus
+  **Add & apply all**.
+
 ## v0.14 — OCR importer: fix Details bleed, add crop step
 
 - **Fixed flavor-text bleed** (e.g. "Everus Harbor. a few different spots. <$"): the parser now
