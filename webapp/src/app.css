@@ -356,3 +356,31 @@ tr.item-row.dragging{opacity:.45}
   .routes{grid-template-columns:1fr}
   .main{padding:54px 12px 50px}
 }
+
+/* ---- Mission importer (OCR) ---- */
+.imp-drop{border:2px dashed var(--rule);background:var(--paper2);padding:26px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.imp-drop-i{font-size:30px;color:var(--cyan);line-height:1}
+.imp-drop-t{font-family:var(--display);font-size:15px;color:var(--ink)}
+.imp-drop-s{font-size:12.5px;color:var(--ink-dim);max-width:380px;line-height:1.5}
+.imp-pick{margin-top:6px;cursor:pointer}
+.imp-working{padding:24px 6px}
+.imp-bar{height:8px;background:var(--paper2);border:1px solid var(--rule);overflow:hidden}
+.imp-bar span{display:block;height:100%;background:var(--cyan);transition:width .15s}
+.imp-sub{font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin-top:8px;text-align:center}
+.imp-err{color:var(--red);font-size:13px}
+.imp-meta{display:flex;gap:14px;align-items:baseline;margin-bottom:10px;font-size:12.5px;color:var(--ink-dim)}
+.imp-meta b{color:var(--ink)}
+.imp-box{color:var(--amber);font-family:var(--mono);font-size:11.5px}
+.imp-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.imp-tbl th{font-family:var(--mono);font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-faint);text-align:left;padding:4px 6px;border-bottom:1px solid var(--rule)}
+.imp-tbl th.n,.imp-tbl td.n{text-align:right;width:64px}
+.imp-tbl td{padding:2px 6px;border-bottom:1px solid var(--rule-soft);position:relative}
+.imp-tbl input{width:100%;background:#fff;border:1px solid var(--rule);color:var(--ink);font-size:13px;padding:4px 6px}
+.imp-tbl input.scu{font-family:var(--mono);text-align:right}
+.imp-tbl input.novel{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,#fff)}
+.imp-tbl input:focus{outline:none;border-color:var(--cyan)}
+.imp-add{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:18px;height:18px;border:1px solid var(--cyan);background:#fff;color:var(--cyan);font-size:13px;line-height:1;padding:0}
+.imp-add:hover{background:var(--cyan);color:#fff}
+.imp-hint{font-size:12px;color:var(--ink-dim);margin:8px 0 0}
+:root[data-theme="dark"] .imp-tbl input,:root[data-theme="dark"] .imp-add{background:var(--card2);color:var(--ink)}
+:root[data-theme="dark"] .imp-tbl input.novel{background:color-mix(in srgb,var(--amber) 22%,var(--card2))}
