@@ -8,6 +8,18 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.11 — full-row mission color + quick-fill rail fix
+
+- **Mission color now fills the entire row** (all columns) on both the Manifest trip tables and
+  the Missions register — replacing the left color-bar/"tab". Text auto-contrasts (`missionFg`)
+  so it's readable on every hue; size cells, inputs, grip, +, delete, and checkbox all adopt
+  the row's contrast color. Completed rows still get the greenish-grey done-wash on top.
+- **Quick-fill rail repositioned**: it was being flung to the far right and squeezed by a flex
+  rule; now a properly-sized (196px) steel-topped panel sitting directly beside the grid.
+- Design guidance audit: remaining accents are intentional — Pick Up/Drop Off cards keep their
+  left bar (approved), and thin top-stripes on neutral info panels (stat tiles, ref rail, modal)
+  are trim, not category color-coding.
+
 ## v0.10 — sidebar run info, grid QOL (quick-fill + tab direction)
 
 - **Removed the on-page manifest-name box**; the run name + live totals now live in the
