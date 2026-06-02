@@ -6,3 +6,6 @@ dist
 
 # Generated at build time by scripts/sync-data.mjs (source of truth: ../data/*.csv)
 public/data/
+
+# Generated OCR runtime (vendored from node_modules + vendor/tessdata at build)
+public/ocr/

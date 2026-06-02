@@ -9,14 +9,19 @@
     "dev": "npm run sync-data && vite",
     "build": "npm run sync-data && vite build",
     "preview": "vite preview --port 8080",
-    "check": "npm run sync-data && svelte-check --tsconfig ./tsconfig.json"
+    "check": "npm run sync-data && svelte-check --tsconfig ./tsconfig.json",
+    "fetch-tessdata": "node scripts/fetch-tessdata.mjs"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tsconfig/svelte": "^5.0.4",
+    "playwright": "^1.60.0",
     "svelte": "^5.19.0",
     "svelte-check": "^4.1.4",
     "typescript": "^5.7.3",
     "vite": "^6.0.7"
+  },
+  "dependencies": {
+    "tesseract.js": "^5.1.1"
   }
 }

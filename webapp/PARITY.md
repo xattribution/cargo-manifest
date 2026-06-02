@@ -8,6 +8,28 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.12 — OCR mission importer (screenshot → rows)
+
+- **Import a mission from a screenshot** (⎙ Import on each trip): paste/drop/pick an image of
+  the SC Primary Objectives panel → OCR → parse → catalog-match → review modal → append as one
+  mission. Fully **client-side & offline**: Tesseract.js is dynamic-imported (separate lazy
+  chunk) and runs against locally-vendored assets in `public/ocr` (worker + WASM core +
+  `eng.traineddata.gz`); the image never leaves the browser. Verified offline by blocking all
+  non-localhost network in a headless run.
+- **Parser** (`lib/parseMission.ts`): reads `Deliver 0/<scu> SCU of <commodity> to <dest>` +
+  `Collect <commodity> from <source>`; source/dest are read from text (Everus is sometimes the
+  destination, not hardcoded). Multi-source delivery → one row per source, full SCU on the
+  first and 0 on the rest (the manual tracking trick). Detects box limit ("16 SCU or smaller",
+  "4 SCU in size", "no larger than N") → auto-sets the trip's crate sizes. Robust to OCR line
+  wraps and missing periods (splits on Deliver/Collect keywords).
+- **Matcher** (`lib/match.ts`): token/code-aware — handles abbreviated catalog names
+  (`S1DC06` ⇆ "Covalex Distribution Center S1DC06"), full-name vs. station-only, prefers the
+  tightest container (station over a shop inside it), weights alphanumeric code tokens
+  (`HUR-L3`, `2UB-RB9-5`). Low-confidence/unknown → flagged novel with one-click add-to-catalog
+  in the review step.
+- Assets: `tesseract.js` dep; `scripts/fetch-tessdata.mjs` commits `vendor/tessdata/eng.traineddata.gz`
+  (tracked, so Docker builds need no network); `sync-data` vendors the runtime into `public/ocr`.
+
 ## v0.11 — full-row mission color + quick-fill rail fix
 
 - **Mission color now fills the entire row** (all columns) on both the Manifest trip tables and

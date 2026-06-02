@@ -133,6 +133,24 @@ function createRun() {
     },
     removeItem(tid: string, iid: string) { const t = byId(tid); if (t) t.items = t.items.filter((i) => i.id !== iid); },
 
+    // Append imported legs (from the OCR mission importer) as one new mission # on a trip.
+    // Optionally constrain the trip's crate sizes to a detected box limit (turn off >max).
+    addImportedLegs(
+      tid: string,
+      legs: { commodity: string; scu: number; source: string; destination: string }[],
+      maxBox: number | null,
+    ) {
+      const t = byId(tid);
+      if (!t || !legs.length) return;
+      const used = new Set(t.items.map((i) => i.mission));
+      let mission = 1;
+      while (used.has(mission) && mission < 10) mission++;
+      for (const lg of legs) {
+        t.items.push({ id: nid(), commodity: lg.commodity, scu: lg.scu === 0 ? '0' : String(lg.scu), source: lg.source, destination: lg.destination, mission, done: false, pickedUp: false });
+      }
+      if (maxBox != null) for (const s of [32, 24, 16, 8, 4, 2, 1]) t.sizes[s] = s <= maxBox;
+    },
+
     sortTrip(tid: string, key: string) {
       const t = byId(tid);
       if (!t) return;
