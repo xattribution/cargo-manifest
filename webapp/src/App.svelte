@@ -50,9 +50,9 @@
     a.href = url; a.download = filename; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
-  function openExport() { exportName = run.state.name || 'Untitled Run'; exportOpen = true; }
+  function openExport() { exportName = run.state.name || 'Cargo Haul'; exportOpen = true; }
   function doExport() {
-    const name = (exportName || '').trim() || 'Untitled Run';
+    const name = (exportName || '').trim() || 'Cargo Haul';
     run.setName(name);
     download(name.replace(/[^\w-]+/g, '_') + '.json', JSON.stringify(run.state, null, 2), 'application/json');
     exportOpen = false;

@@ -24,7 +24,7 @@ const DEFAULT_COLW = { commodity: 210, source: 160, destination: 175 };
 const OLD_DEFAULT_COLW = { commodity: 300, source: 200, destination: 200 };
 function defaultState(): RunState {
   return {
-    name: 'Untitled Run',
+    name: 'Cargo Haul',
     fitMode: 'mission',
     dropOpen: true,
     pickOpen: true,
@@ -33,6 +33,7 @@ function defaultState(): RunState {
     missionShips: {},
     missionNames: {},
     missionRewards: {},
+    missionOrder: [],
     pickOrder: [],
     dropOrder: [],
   };
@@ -47,6 +48,7 @@ export function migrate(saved: unknown): RunState {
   s.missionShips = o.missionShips && typeof o.missionShips === 'object' ? o.missionShips : {};
   s.missionNames = o.missionNames && typeof o.missionNames === 'object' ? o.missionNames : {};
   s.missionRewards = o.missionRewards && typeof o.missionRewards === 'object' ? o.missionRewards : {};
+  s.missionOrder = Array.isArray(o.missionOrder) ? o.missionOrder.filter((n: any) => Number.isInteger(n)) : [];
   s.pickOrder = Array.isArray(o.pickOrder) ? o.pickOrder : [];
   s.dropOrder = Array.isArray(o.dropOrder) ? o.dropOrder : [];
   s.colW = Object.assign({ ...DEFAULT_COLW }, o.colW || {});
@@ -98,6 +100,36 @@ function createRun() {
     setMissionReward(mission: number, reward: number | null) {
       if (reward != null && reward > 0) state.missionRewards[mission] = reward;
       else delete state.missionRewards[mission];
+    },
+    // ---- mission management (the Missions panel) ----
+    // Add a new empty mission: pick the lowest unused 1–10 number and pin it to the order.
+    addMission(): number | null {
+      const inUse = new Set<number>();
+      for (const sec of state.sections) for (const it of sec.items) inUse.add(Math.max(1, Math.min(10, Number(it.mission) || 1)));
+      for (const n of state.missionOrder) inUse.add(n);
+      let m = 0;
+      for (let n = 1; n <= 10; n++) if (!inUse.has(n)) { m = n; break; }
+      if (!m) return null; // all 10 in use
+      if (!state.missionOrder.includes(m)) state.missionOrder.push(m);
+      return m;
+    },
+    // Delete a mission: remove its manifest items and all its metadata.
+    deleteMission(mission: number) {
+      for (const sec of state.sections) sec.items = sec.items.filter((it) => (Number(it.mission) || 1) !== mission);
+      delete state.missionShips[mission];
+      delete state.missionNames[mission];
+      delete state.missionRewards[mission];
+      state.missionOrder = state.missionOrder.filter((n) => n !== mission);
+    },
+    // Persist the Missions panel display order (list of mission #s, top-to-bottom).
+    setMissionOrder(order: number[]) { state.missionOrder = order; },
+    moveMission(mission: number, toIndex: number, currentOrder: number[]) {
+      const arr = currentOrder.slice();
+      const from = arr.indexOf(mission);
+      if (from < 0) return;
+      const [m] = arr.splice(from, 1);
+      arr.splice(Math.max(0, Math.min(arr.length, toIndex)), 0, m);
+      state.missionOrder = arr;
     },
     // Persist a manual card order for a column (list of group keys, top-to-bottom).
     setCardOrder(which: 'pick' | 'drop', keys: string[]) {

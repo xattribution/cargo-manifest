@@ -15,13 +15,19 @@ export interface MissionRollup {
   done: number; // delivered lines
 }
 
-export function missionRollups(sections: Trip[]): MissionRollup[] {
+// `order` is the user's display order from state.missionOrder. Missions with items always
+// appear; blank missions (in `order` but with no items) are kept so you can build them up.
+export function missionRollups(sections: Trip[], order: number[] = []): MissionRollup[] {
   const byMission = new Map<number, { entries: { it: any; sizes: any }[]; src: Set<string>; dst: Set<string> }>();
+  const ensure = (m: number) => {
+    let b = byMission.get(m);
+    if (!b) { b = { entries: [], src: new Set(), dst: new Set() }; byMission.set(m, b); }
+    return b;
+  };
   for (const sec of sections) {
     for (const it of sec.items) {
       const m = Math.max(1, Math.min(10, Number(it.mission) || 1));
-      let b = byMission.get(m);
-      if (!b) { b = { entries: [], src: new Set(), dst: new Set() }; byMission.set(m, b); }
+      const b = ensure(m);
       b.entries.push({ it, sizes: sec.sizes });
       const s = (it.source || '').trim().toLowerCase();
       const d = (it.destination || '').trim().toLowerCase();
@@ -29,18 +35,17 @@ export function missionRollups(sections: Trip[]): MissionRollup[] {
       if (d) b.dst.add(d);
     }
   }
-  const out: MissionRollup[] = [];
-  for (const [mission, b] of byMission) {
+  for (const m of order) ensure(m); // keep blank missions visible
+
+  const build = (mission: number): MissionRollup => {
+    const b = byMission.get(mission)!;
     const agg = aggregate(b.entries);
-    out.push({
-      mission,
-      agg,
-      maxSize: maxCrateSize(agg.totals),
-      sources: b.src.size,
-      dests: b.dst.size,
-      items: b.entries.length,
-      done: b.entries.filter((e) => e.it.done).length,
-    });
-  }
-  return out.sort((a, b) => a.mission - b.mission);
+    return { mission, agg, maxSize: maxCrateSize(agg.totals), sources: b.src.size, dests: b.dst.size, items: b.entries.length, done: b.entries.filter((e) => e.it.done).length };
+  };
+  // ordered first (in the user's order), then any remaining missions ascending
+  const seen = new Set<number>();
+  const out: MissionRollup[] = [];
+  for (const m of order) if (byMission.has(m) && !seen.has(m)) { seen.add(m); out.push(build(m)); }
+  for (const m of [...byMission.keys()].sort((a, b) => a - b)) if (!seen.has(m)) { seen.add(m); out.push(build(m)); }
+  return out;
 }

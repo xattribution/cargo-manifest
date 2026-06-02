@@ -8,6 +8,18 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
 
 ---
 
+## v0.16 — mission management + small UX
+
+- Default run name is now **"Cargo Haul"** (was "Untitled Run").
+- Reference rail shows a subtle **"click to copy / fill"** hint.
+- Trip import button relabeled **"Import mission screenshot"**.
+- **Mission management** in the Missions panel: drag ⠿ to **reorder** (persisted in
+  `missionOrder`, mission numbers/colours stay stable), **✕ delete** (confirms, then removes
+  the mission's manifest lines + its ship/name/reward), and **+ Add mission** for a blank
+  mission slot (lowest free 1–10) you can build up later. `missionRollups()` now honours the
+  order and keeps blank missions visible.
+- Built on the updated baseline dataset (168 commodities / 764 locations / 256 ships).
+
 ## v0.15 — Screenshot Import: wider UI, crop fix, suggestions sidebar
 
 - Renamed to **Screenshot Import**; modal widened (`Modal wide`) so location/commodity names
