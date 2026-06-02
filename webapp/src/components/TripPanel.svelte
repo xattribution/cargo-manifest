@@ -166,7 +166,7 @@
       <input class="sec-name" placeholder="Trip name" spellcheck="false"
         value={trip.name} oninput={(e) => run.renameTrip(trip.id, e.currentTarget.value)} />
       <span class="sec-sub">{sub.scu.toLocaleString()} SCU · {sub.crates} crate{sub.crates === 1 ? '' : 's'}</span>
-      <button class="btn ghost sm" title="Import a mission from a screenshot" onclick={() => (importOpen = true)}>⎙ Import</button>
+      <button class="btn ghost sm" title="Import a mission from a screenshot" onclick={() => (importOpen = true)}>⎙ Import mission screenshot</button>
       <button class="sec-del" title="Remove trip" onclick={removeTrip}>✕</button>
     </div>
 
@@ -224,6 +224,7 @@
 
       {#if usedCommodities.length || usedLocations.length}
         <aside class="ref-rail" aria-label="Quick fill">
+          <div class="ref-tip">click to copy / fill</div>
           {#if usedCommodities.length}
             <div class="ref-grp">
               <div class="ref-h">Commodities</div>
