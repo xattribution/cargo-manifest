@@ -136,7 +136,7 @@
 
     <Zone accent="var(--c-manifest)" title="Manifest">
       {#snippet actions()}
-        <button class="btn ghost sm" title="Tab key direction in the grid"
+        <button class="btn ghost sm" title="Tab key direction in the grid · hold Ctrl+Arrow to move any direction"
           onclick={() => prefs.toggleTabDir()}>Tab {prefs.tabDir === 'down' ? '↓' : '→'}</button>
         <button class="btn ghost sm" onclick={() => run.addTrip()}>+ Trip</button>
       {/snippet}
@@ -165,6 +165,7 @@
       <li><b>Fleet</b> (left): add ships you own; the smallest that fits the load is starred. Click a ship to set its <b>cargo grid</b> (max box size + realistic SCU).</li>
       <li><b>Missions</b> (Overview): per-mission totals; assign a hull to each mission to split a run across ships.</li>
       <li><b>Pick Up / Drop Off</b>: tick Drop Off when delivered; tick Pick Up just to mark cargo collected.</li>
+      <li><b>Fast entry</b>: Tab moves by the <b>Tab ↓/→</b> direction (Enter always goes down); hold <b>Ctrl</b> + an arrow key to move any direction for one cell. The chips beside a trip fill the focused cell.</li>
     </ol>
     <p class="muted">Everything saves in your browser — nothing is sent to a server. Use ⚙ to export/import a run or the catalog CSVs.</p>
   </Modal>

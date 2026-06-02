@@ -38,36 +38,72 @@
     const el = tableEl?.querySelector<HTMLElement>(sel);
     if (el) { el.focus(); (el as HTMLInputElement).select?.(); }
   }
+  function curItems() { return run.state.sections.find((s) => s.id === trip.id)?.items ?? []; }
+
+  // Move focus from (r,c) along an axis. `grow` lets Tab/Enter append a new row at the end.
+  function move(r: number, c: number, axis: 'v' | 'h', back: boolean, grow: boolean) {
+    const rows = trip.items;
+    if (axis === 'v') {
+      const nr = r + (back ? -1 : 1);
+      if (nr >= rows.length) {
+        if (!grow) return;
+        run.addItem(trip.id);
+        setTimeout(() => focusCell(curItems()[rows.length].id, NAV_COLS[c]), 0);
+        return;
+      }
+      if (nr < 0) {                          // wrap up → previous column, last row
+        const nc = (c - 1 + NAV_COLS.length) % NAV_COLS.length;
+        focusCell(rows[rows.length - 1].id, NAV_COLS[nc]); return;
+      }
+      focusCell(rows[nr].id, NAV_COLS[c]);
+    } else {
+      let nc = c + (back ? -1 : 1);
+      if (nc >= NAV_COLS.length) {            // wrap right → next row, first column
+        const nr = r + 1;
+        if (nr >= rows.length) {
+          if (!grow) return;
+          run.addItem(trip.id);
+          setTimeout(() => focusCell(curItems()[rows.length].id, NAV_COLS[0]), 0);
+          return;
+        }
+        focusCell(rows[nr].id, NAV_COLS[0]); return;
+      }
+      if (nc < 0) {                           // wrap left → previous row, last column
+        const nr = r - 1;
+        if (nr < 0) return;
+        focusCell(rows[nr].id, NAV_COLS[NAV_COLS.length - 1]); return;
+      }
+      focusCell(rows[r].id, NAV_COLS[nc]);
+    }
+  }
   function onGridKeydown(e: KeyboardEvent) {
     const t = e.target as HTMLElement;
     if (!t || t.tagName !== 'INPUT') return;
     const field = t.getAttribute('data-f'); const rowId = t.getAttribute('data-row');
     if (!field || !rowId || !NAV_COLS.includes(field)) return;
+    const r = trip.items.findIndex((x) => x.id === rowId);
+    const c = NAV_COLS.indexOf(field);
+    if (r < 0) return;
+
+    // Ctrl/Cmd + Arrow: subtle one-shot directional move (no auto-add). Ctrl avoids the
+    // browser's Alt+Left/Right history navigation; Meta covers macOS.
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      e.preventDefault();
+      if (e.key === 'ArrowUp') move(r, c, 'v', true, false);
+      else if (e.key === 'ArrowDown') move(r, c, 'v', false, false);
+      else if (e.key === 'ArrowLeft') move(r, c, 'h', true, false);
+      else move(r, c, 'h', false, false);
+      return;
+    }
+
     const isTab = e.key === 'Tab';
     const isEnter = e.key === 'Enter';
     if (!isTab && !isEnter) return;
-    const rows = trip.items;
-    const r = rows.findIndex((x) => x.id === rowId);
-    const c = NAV_COLS.indexOf(field);
-    if (r < 0) return;
-    // Enter always moves vertically; Tab follows the chosen primary direction.
-    const vertical = isEnter || prefs.tabDir === 'down';
-    const back = e.shiftKey;
     e.preventDefault();
-    if (vertical) {
-      let nr = r + (back ? -1 : 1);
-      if (nr >= rows.length) { run.addItem(trip.id); nr = rows.length; setTimeout(() => focusCell(run.state.sections.find((s) => s.id === trip.id)!.items[nr].id, field), 0); return; }
-      if (nr < 0) { // wrap to previous column, last row
-        const nc = (c - 1 + NAV_COLS.length) % NAV_COLS.length;
-        focusCell(rows[rows.length - 1].id, NAV_COLS[nc]); return;
-      }
-      focusCell(rows[nr].id, field);
-    } else {
-      let nc = c + (back ? -1 : 1);
-      if (nc >= NAV_COLS.length) { nc = 0; const nr = r + 1; if (nr >= rows.length) { run.addItem(trip.id); setTimeout(() => focusCell(run.state.sections.find((s) => s.id === trip.id)!.items[nr].id, NAV_COLS[0]), 0); return; } focusCell(rows[nr].id, NAV_COLS[0]); return; }
-      if (nc < 0) { nc = NAV_COLS.length - 1; const nr = r - 1; if (nr < 0) return; focusCell(rows[nr].id, NAV_COLS[nc]); return; }
-      focusCell(rows[r].id, NAV_COLS[nc]);
-    }
+    // Enter always moves vertically; Tab follows the chosen primary direction (Ctrl+Arrow is
+    // the one-off override for moving the other way).
+    const vertical = isEnter || prefs.tabDir === 'down';
+    move(r, c, vertical ? 'v' : 'h', e.shiftKey, true);
   }
 
   // fixed column widths (the resizable three come from run.state.colW)
