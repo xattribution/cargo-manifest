@@ -18,8 +18,9 @@ single-file self-host app (`../cargo-manager.html`, documented in `../README.md`
   copies it to the clipboard (paste still works).
 - **Directional grid navigation**: Tab moves by a chosen primary direction (vertical by
   default, matching manifest entry), Shift+Tab reverses, Enter always moves down; a
-  **Tab ↓/→ toggle** in the Manifest header switches it (persisted). Tabbing past the last row
-  auto-adds a commodity line. `lib/prefs.svelte.ts`.
+  **Tab ↓/→ toggle** in the Manifest header switches it (persisted). **Ctrl/Cmd + Arrow** is a
+  one-off override to move any direction (no auto-add). Tabbing past the last row auto-adds a
+  commodity line. `lib/prefs.svelte.ts`.
 
 ## v0.9 — contrast pass, distinct completion, dark mode
 
