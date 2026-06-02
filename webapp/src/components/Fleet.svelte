@@ -9,6 +9,15 @@
 
   let { openGrid }: { openGrid: (name: string) => void } = $props();
 
+  // Collapse the whole fleet to reduce sidebar clutter; persisted as a UI preference.
+  const COLLAPSE_KEY = 'cargo:webapp:fleetCollapsed';
+  let collapsed = $state(false);
+  try { collapsed = localStorage.getItem(COLLAPSE_KEY) === '1'; } catch { /* ignore */ }
+  function toggleCollapsed() {
+    collapsed = !collapsed;
+    try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0'); } catch { /* ignore */ }
+  }
+
   const tgt = $derived.by(() => {
     if (run.state.fitMode === 'mission') {
       const rs = missionRollups(run.state.sections).filter((r) => r.agg.scu > 0);
@@ -60,12 +69,15 @@
   ] as const;
 </script>
 
-<div class="fleet">
-  <div class="fleet-hd">
+<div class="fleet" class:collapsed>
+  <button class="fleet-hd" onclick={toggleCollapsed} title={collapsed ? 'Show fleet' : 'Hide fleet'}>
+    <span class="caret">▾</span>
     <span class="fleet-title">Fleet</span>
+    <span class="fleet-count">{ordered.length}</span>
     <span class="fleet-tgt">{total > 0 ? `${total.toLocaleString()} SCU` : '—'}</span>
-  </div>
+  </button>
 
+  {#if !collapsed}
   <div class="fitseg">
     {#each fitModes as m}
       <button class="fitseg-b" class:on={run.state.fitMode === m.k} onclick={() => run.setFitMode(m.k)}>{m.l}</button>
@@ -113,4 +125,5 @@
       onkeydown={(e) => { if (e.key === 'Enter') doAdd(); }} />
     <button class="btn accent xs" onclick={doAdd}>+</button>
   </div>
+  {/if}
 </div>

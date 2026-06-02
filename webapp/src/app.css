@@ -54,9 +54,14 @@ input{font-family:var(--body)}
 
 /* ---- Fleet (sidebar) ---- */
 .fleet{padding:12px}
-.fleet-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.fleet-hd{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:0;padding:2px 0 8px;text-align:left}
+.fleet-hd .caret{color:var(--side-dim);font-size:11px;transition:transform .15s}
+.fleet.collapsed .fleet-hd{padding-bottom:2px}
+.fleet.collapsed .caret{transform:rotate(-90deg)}
 .fleet-title{font-family:var(--display);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--side-dim)}
-.fleet-tgt{font-family:var(--mono);font-size:13px;color:var(--amber)}
+.fleet-count{font-family:var(--mono);font-size:10px;color:var(--side-faint);border:1px solid var(--side-line);padding:0 5px;line-height:15px}
+.fleet-tgt{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--amber)}
+.fleet-hd:hover .fleet-title{color:var(--side-ink)}
 .fitseg{display:flex;border:1px solid var(--side-line);margin-bottom:10px}
 .fitseg-b{flex:1;background:transparent;border:0;color:var(--side-dim);font-family:var(--display);font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;padding:6px 2px}
 .fitseg-b+.fitseg-b{border-left:1px solid var(--side-line)}
