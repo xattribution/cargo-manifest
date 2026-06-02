@@ -45,6 +45,7 @@ export interface RunState {
   sections: Trip[];
   missionShips: Record<number, string>; // mission # -> assigned ship name ('' = none)
   missionNames: Record<number, string>; // mission # -> optional label
+  missionRewards: Record<number, number>; // mission # -> reward in aUEC (assumes 100% completion)
   pickOrder: string[]; // manual ordering of Pick Up cards (by source key); unknown keys fall to the end
   dropOrder: string[]; // manual ordering of Drop Off cards (by destination key)
 }
