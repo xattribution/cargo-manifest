@@ -161,25 +161,27 @@ input{font-family:var(--body)}
 .mtbl{width:100%;border-collapse:collapse;font-size:13px}
 .mtbl thead th{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);white-space:nowrap;background:var(--th-bg)}
 .mtbl th.mt-num,.mtbl th.mt-sz{text-align:right}
-.mtbl td{padding:4px 8px;border-bottom:1px solid var(--rule-soft);vertical-align:middle}
-.mtbl tbody tr:nth-child(even){background:var(--card2)}
-.mtbl tr.mrow{box-shadow:inset 3px 0 0 var(--mc)}
-.mt-id{width:30px;text-align:center}
+.mtbl td{padding:4px 8px;border-bottom:1px solid rgba(0,0,0,.14);vertical-align:middle}
+/* full-row mission color, text uses the contrast --mfg */
+.mtbl tr.mrow{background:var(--mc);color:var(--mfg)}
+.mtbl tr.mrow:hover{filter:brightness(1.06)}
+.mt-id{width:30px;text-align:center;font-family:var(--display);font-weight:700;font-size:13px}
 .mt-num{text-align:right;font-family:var(--mono);white-space:nowrap}
-.mt-num.strong{color:var(--cyan);font-weight:600}
-.mt-sz{text-align:right;font-family:var(--mono);width:38px;color:var(--ink-dim)}
-.mt-rt{font-family:var(--mono);color:var(--ink-dim);white-space:nowrap}
-.mt-left{color:var(--red);font-size:11px;margin-left:3px}
-.mswatch{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;font-family:var(--display);font-weight:700;font-size:12px}
-.mname-in,.mship-in{width:100%;min-width:80px;background:transparent;border:1px solid transparent;color:var(--ink);font-size:13px;padding:3px 6px}
-.mname-in:hover,.mship-in:hover{border-color:var(--rule)}
-.mname-in:focus,.mship-in:focus{outline:none;border-color:var(--cyan);background:#fff}
+.mt-num.strong{font-weight:700}
+.mt-sz{text-align:right;font-family:var(--mono);width:38px}
+.mt-rt{font-family:var(--mono);white-space:nowrap}
+.mt-left{font-size:11px;margin-left:3px;font-weight:700}
+.mname-in,.mship-in{width:100%;min-width:80px;background:transparent;border:1px solid transparent;color:var(--mfg);font-size:13px;padding:3px 6px}
+.mname-in::placeholder,.mship-in::placeholder{color:var(--mfg);opacity:.55}
+.mname-in:hover,.mship-in:hover{border-color:color-mix(in srgb, var(--mfg) 35%, transparent)}
+.mname-in:focus,.mship-in:focus{outline:none;border-color:var(--mfg);background:color-mix(in srgb, var(--mc) 78%, #000)}
 .mt-ship{min-width:130px}
 .badge{font-family:var(--display);font-size:11px;letter-spacing:.5px;padding:1px 6px;display:inline-block}
 .badge.ok{color:#fff;background:var(--green)}
 .badge.bad{color:#fff;background:var(--red)}
 .badge.warn{color:#fff;background:var(--amber)}
-.mt-fit .dot.none{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--rule)}
+.mt-fit .dot.none{display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.4}
+.mtbl tr.mrow .badge{border:1px solid rgba(0,0,0,.25)}
 
 /* ---- Trips / Manifest table ---- */
 .intro-note{display:none}
@@ -207,16 +209,17 @@ input{font-family:var(--body)}
 .tbl th.th-scu{text-align:right} .tbl th.th-crates{text-align:center}
 .tbl th.szcol{width:40px;text-align:center;color:var(--amber);font-size:13px;background:rgba(192,138,46,.08)}
 .tbl td.szcell{width:40px;text-align:center;font-family:var(--mono);font-size:14px;color:var(--ink);background:rgba(192,138,46,.05)}
+.item-row.colored td.szcell{background:transparent}
 .tbl td.szcell:empty{color:transparent}
 .leftover-mark{color:var(--red);font-size:11px;font-family:var(--mono)}
-.tbl-scroll{overflow-x:auto;flex:1;min-width:0}
-.trip-body{display:flex;gap:10px;align-items:flex-start}
-.ref-rail{flex:0 0 158px;display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;padding:8px;background:var(--card2);border:1px solid var(--rule);margin-top:8px}
+.tbl-scroll{overflow-x:auto;flex:0 1 auto;min-width:0}
+.trip-body{display:flex;gap:12px;align-items:stretch}
+.ref-rail{flex:0 0 196px;align-self:stretch;display:flex;flex-direction:column;gap:10px;overflow-y:auto;padding:10px;background:var(--paper2);border:1px solid var(--rule);border-top:2px solid var(--steel);margin-top:8px}
 .ref-grp{display:flex;flex-direction:column;gap:3px}
-.ref-h{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:1px}
-.ref-chip{text-align:left;background:var(--card);border:1px solid var(--rule);color:var(--ink-dim);font-family:var(--body);font-size:11.5px;padding:3px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;letter-spacing:0}
-.ref-chip:hover{border-color:var(--cyan);color:var(--cyan)}
-@media(max-width:760px){ .trip-body{flex-direction:column} .ref-rail{flex-basis:auto;width:100%;max-height:none;flex-direction:row;flex-wrap:wrap} .ref-grp{flex-direction:row;flex-wrap:wrap;align-items:center} }
+.ref-h{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-dim);margin-bottom:2px}
+.ref-chip{text-align:left;background:var(--card);border:1px solid var(--rule);color:var(--ink);font-family:var(--body);font-size:12px;padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;letter-spacing:0}
+.ref-chip:hover{border-color:var(--cyan);color:var(--cyan);background:var(--card2)}
+@media(max-width:760px){ .trip-body{flex-direction:column;align-items:stretch} .ref-rail{flex-basis:auto;width:100%;flex-direction:row;flex-wrap:wrap} .ref-grp{flex-direction:row;flex-wrap:wrap;align-items:center} }
 .tbl th{position:relative}
 .tbl th.rcol{padding-right:14px}
 .col-resizer{position:absolute;top:0;right:-7px;width:16px;height:100%;cursor:col-resize;z-index:3;touch-action:none;background:transparent;border:0;padding:0;appearance:none;display:flex;align-items:center;justify-content:center}
@@ -231,12 +234,13 @@ input{font-family:var(--body)}
 .grip:hover{color:var(--cyan)} .grip:active{cursor:grabbing}
 tr.item-row.dragging{opacity:.45}
 .m-col,.m-cell{width:30px;text-align:center;padding:0 2px}
-.m-num{width:28px;text-align:center;font-family:var(--display);font-weight:700;font-size:13px;background:transparent;border:1px solid transparent;padding:2px 0;color:var(--rowfg);-moz-appearance:textfield}
+.m-num{width:28px;text-align:center;font-family:var(--display);font-weight:700;font-size:13px;background:transparent;border:1px solid transparent;padding:2px 0;color:inherit;-moz-appearance:textfield}
 .m-num::-webkit-outer-spin-button,.m-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 
-/* per-row mission color: a left bar + tinted row, dark ink stays readable on light card */
-.item-row.colored{box-shadow:inset 4px 0 0 var(--rowbar, var(--rowfg))}
-.item-row td{color:var(--ink)}
+/* per-row mission color: the ENTIRE row is the mission color, text uses contrast --rowfg */
+.item-row.colored{background:var(--rowbg)}
+.item-row.colored td{color:var(--rowfg)}
+.item-row.colored:hover{filter:brightness(1.06)}
 .field{position:relative;display:block;width:100%}
 .field input{display:block;width:100%;min-width:0;background:transparent;border:1px solid transparent;color:var(--ink);font-size:13px;padding:3px 7px}
 .field input.has-add{padding-right:26px}
@@ -244,10 +248,22 @@ tr.item-row.dragging{opacity:.45}
 .field input:hover{border-color:var(--rule)}
 .field input:focus{outline:none;border-color:var(--cyan);background:var(--card2)}
 .field input.scu{text-align:right;font-family:var(--mono);font-size:14px;color:var(--amber);max-width:84px}
-.addbtn{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:19px;height:19px;border:1px solid var(--cyan);background:#fff;color:var(--cyan);font-size:14px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
-.addbtn:hover{background:var(--cyan);color:#fff}
+/* on a colored row, inputs/text ride on the row color and inherit the contrast fg */
+.item-row.colored .field input{color:var(--rowfg)}
+.item-row.colored .field input::placeholder{color:var(--rowfg);opacity:.55}
+.item-row.colored .field input:hover{border-color:color-mix(in srgb, var(--rowfg) 35%, transparent)}
+.item-row.colored .field input:focus{border-color:var(--rowfg);background:color-mix(in srgb, var(--rowbg) 78%, #000)}
+.item-row.colored .field input.scu{color:var(--rowfg)}
+.item-row.colored .szcell{color:var(--rowfg)}
+.item-row.colored .ncount{color:var(--rowfg)}
+.item-row.colored .leftover-mark{color:var(--rowfg);font-weight:700}
+.item-row.colored .grip{color:var(--rowfg);opacity:.55}
+.item-row.colored .row-del{color:var(--rowfg);border-color:color-mix(in srgb, var(--rowfg) 40%, transparent)}
+.item-row.colored .row-del:hover{border-color:var(--rowfg);background:color-mix(in srgb, var(--rowfg) 14%, transparent)}
+.item-row.colored .donebox{accent-color:var(--rowfg)}
+.addbtn{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:19px;height:19px;border:1px solid currentColor;background:rgba(0,0,0,.18);color:inherit;font-size:14px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
+.addbtn:hover{background:currentColor;color:var(--rowbg,#fff)}
 .addbtn[hidden]{display:none}
-.szcell{}
 .ncount{font-family:var(--mono);font-size:14px;color:var(--ink);text-align:center}
 .row-del{background:transparent;border:1px solid var(--rule);color:var(--ink-faint);width:22px;height:22px;line-height:1;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
 .row-del:hover{border-color:var(--red);color:var(--red)}
@@ -255,9 +271,11 @@ tr.item-row.dragging{opacity:.45}
 .add-row-wrap{margin-top:8px}
 .done-col,.done-cell{width:24px;text-align:center}
 .donebox{width:14px;height:14px;cursor:pointer;accent-color:var(--cyan)}
-.item-row.done{background:var(--done-wash)}
-.item-row.done td{color:var(--done-ink)}
-.item-row.done .field input{color:var(--done-ink)}
+/* completed row: greenish-grey wash overrides the mission color, struck commodity */
+.item-row.done.colored{background:var(--done-wash)}
+.item-row.done.colored td{color:var(--done-ink)}
+.item-row.done.colored .field input{color:var(--done-ink)}
+.item-row.done.colored .szcell,.item-row.done.colored .ncount{color:var(--done-ink)}
 .item-row.done .field input[data-f="commodity"]{text-decoration:line-through}
 .tbl td:last-child,.tbl th:last-child{text-align:center;padding:0 2px}
 .crates-cell,.add-ship-row,.ship-tbl,.fit,.grid-chip,.cap-cell,.ship-actions,.fleet-top,.fit-target,.size-totals,.size-tot,.leftover-warn,.summary-grid,.stat .v small,.mini-note,.info-btn,.data-strip,.page-foot,.hdr-status,.icon-btn,.cog-btn,header.top,.manifest-name{}

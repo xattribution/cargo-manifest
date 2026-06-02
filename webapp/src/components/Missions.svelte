@@ -42,8 +42,8 @@
           {@const ship = run.state.missionShips[r.mission] || ''}
           {@const row = rowFor(ship)}
           {@const fit = row ? shipFit(row, r.agg.scu, r.maxSize) : null}
-          <tr class="mrow" style="--mc:{c}">
-            <td class="mt-id"><span class="mswatch" style="background:{c};color:{missionFg(c)}">{r.mission}</span></td>
+          <tr class="mrow" style="--mc:{c};--mfg:{missionFg(c)}">
+            <td class="mt-id">{r.mission}</td>
             <td><input class="mname-in" placeholder="Mission {r.mission}" value={run.state.missionNames[r.mission] || ''}
               oninput={(e) => run.setMissionName(r.mission, e.currentTarget.value)} spellcheck="false" /></td>
             <td class="mt-num strong">{r.agg.scu.toLocaleString()}</td>
