@@ -1,123 +1,168 @@
 Name,Type
-AcryliPlex Composite,Consumer Goods
+AcryliPlex Composite,Processed goods
 Agricium,Metal
-Agricium (Ore),Metal
-Agricultural Supplies,Agricultural Supply
+Agricultural Supplies,Organic
 Altruciatoxin,Vice
 Aluminum,Metal
-Aluminum (Ore),Metal
-Amioshi Plague,Natural
+Amioshi Plague,Organic
 Ammonia,Gas
 Aphorite,Mineral
 Argon,Gas
-Astatine,Gas
+Aslarite,Mineral
+Astatine,Halogen
 Atlasium,Alloy
-Audio Visual Equipment,Consumer Goods
-Beradom,Alloy
+Audio-Visual Equipment,Processed goods
+Beradom,Mineral
 Beryl,Mineral
-Beryl (Raw),Mineral
 Bexalite,Mineral
-Bexalite (Raw),Mineral
-Bioplastic,Consumer Goods
+Biological Samples,Organic
+Bioplastic,Synthetic materials
+Blue Bilva,Food
+Bluemoon Fungus,Organic
 Borase,Metal
-Borase (Ore),Metal
-Carbon,Metal
-Carbon-Silk,Consumer Goods
-Chlorine,Gas
+Cadmium Allinide,Synthetic materials
+Carbon,Non-metal
+Carbon-Silk,Organic
+Carinite,Mineral
+Carinite (Pure),Mineral
+Ceprozin,Vice
+Chlorine,Halogen
+CK13-GID Seed Blend,Organic
 Cobalt,Metal
-Compboard,Scrap
-Construction Materials,Consumer Goods
+Combat Supplies,Processed goods
+Compboard,Waste
+Construction Materials,Processed goods
 Copper,Metal
-Copper (Ore),Metal
 Corundum,Mineral
-Corundum (Raw),Mineral
-DCSR2,Agricultural Supply
-Degnous Root,Natural
+DCSR2,Organic
+Decari Pod,Organic
+Degnous Root,Organic
+Desert Quasi Grazer Egg,Organic
+Detatrine,Vice
 Diamond,Mineral
-Diamond (Raw),Mineral
-Diamond Laminate,Consumer Goods
+Diamond Laminate,Synthetic materials
+Diluthermex,Processed goods
 Distilled Spirits,Vice
 Dolivine,Mineral
+Dopple,Vice
 Dymantium,Alloy
-DynaFlex,Consumer Goods
+DynaFlex,Synthetic materials
 E'tam,Vice
-Feynmaline,Alloy
-Fluorine,Gas
+Elespo,Synthetic materials
+EVA Fuel,Processed goods
+Expired Quantanium Fuel Canister,Waste
+Feynmaline,Mineral
+Fluorine,Halogen
+Fotia Seedpod,Organic
+Freeze,Vice
 Fresh Food,Food
-Gasping Weevil Eggs,Vice
-Glacosite,Alloy
+Gasping Weevil Eggs,Food
+Glacosite,Mineral
+Glow,Vice
 Gold,Metal
-Gold (Ore),Metal
-Golden Medmons,Natural
+Golden Medmon,Food
 Hadanite,Mineral
-Heart of the Woods,Natural
+Heart of the Woods,Food
 Helium,Gas
 Hephaestanite,Mineral
-Hephaestanite (Raw),Mineral
+HexaPolyMesh Coating,Processed goods
+HLX99 Hyperprocessors,Processed goods
 Human Food Bars,Food
 Hydrogen,Gas
-Hydrogen Fuel,
-Inert Materials,Mixed Mining
-Iodine,Gas
+Hydrogen Fuel,Processed goods
+Inert Materials,Mineral
+Iodine,Halogen
 Iron,Metal
-Iron (Ore),Metal
+Jaclium (Ore),Unrefined ores
 Janalite,Mineral
-Jumping Limes,Natural
-Kopion Horn,Consumer Goods
+Jumping Limes,Food
+Kherium,Mineral
+Kopion Horn,Organic
 Laranite,Mineral
-Laranite (Raw),Mineral
-Luminalia Gift Box,Consumer Goods
-Marok Gem,Consumer Goods
+Lastaprene,Synthetic materials
+LifeCure Medsticks,Processed goods
+Lindinium,Metal
+Luminalia Gift,Processed goods
+Lunes (Spiral Fruit),Food
+Lycara,Synthetic materials
+Mala,Vice
+Marok Gem,Organic
 Maze,Vice
-Medical Supplies,Medical Supply
-Mercury,Metal
+MedGel,Processed goods
+Medical Supplies,Processed goods
+Mercury (commodity),Metal
 Methane,Gas
-Neograph,Consumer Goods
+Mixed Mining,Mineral
+MobyGlass Personal Computers,Processed goods
+Molina Mold Samples,Organic
+Molina Mold Treatment,Organic
+Molina Ventilation Filters,Processed goods
+Neograph,Synthetic materials
 Neon,Vice
 Nitrogen,Gas
-Omnapoxy,Consumer Goods
-Organics,Natural
-Osoian Hides,Vice
+Omnapoxy,Synthetic materials
+Organics,Organic
+Osoian Hides,Processed goods
+Ouratite,Non-metal
+Oxygen,Gas
+Oza,Food
 Partillium,Gas
-Party Favors,Consumer Goods
-Pitambu,Natural
-Potassium,Mineral
-Pressurized Ice,Gas
-Processed Food,Food
-Prota,Natural
+Party Favors,Processed goods
+Pingala Seeds,Organic
+Pitambu,Food
+Potassium,Metal
+Pressurized Ice,Mineral
+Processed Food,Processed goods
+Prota,Organic
 Quantainium,Mineral
-Quantainium (Raw),Mineral
-Quantum Fuel,
+Quantum Fuel,Processed goods
 Quartz,Mineral
-Quartz (Raw),Mineral
-Ranta Dung,Agricultural Supply
-Recycled Material Composite,Recycled Material Composite
-Red Festival Envelope,Consumer Goods
-Revenant Pods,Natural
-Revenant Tree Pollen,Vice
+Ranta Dung,Organic
+Recycled Material Composite,Processed goods
+Redfin Energy Modulators,Processed goods
+Revenant Pod,Organic
+Revenant Tree Pollen,Organic
 Riccite,Metal
-Scrap,Scrap
-Ship Ammunition,Consumer Goods
-Silicon,Metal
+RS1 Odysey Spacesuits,Processed goods
+Sadaryx,Mineral
+Saldynium (Ore),Unrefined ores
+Sarilus,Synthetic materials
+Savrilium,Metal
+Scrap,Waste
+Ship Ammunition,Processed goods
+Ship Ammunition - Size 1,Bulk supplies
+Ship Ammunition - Size 2,Bulk supplies
+Ship Ammunition - Size 3,Bulk supplies
+Ship Ammunition - Size 4,Bulk supplies
+Ship Ammunition - Size 5,Bulk supplies
+Ship Ammunition - Size 6,Bulk supplies
+Ship Ammunition - Size 7,Bulk supplies
+Ship Ammunition - Size 8,Bulk supplies
+Ship Ammunition - Size 9,Bulk supplies
+Ship Decoy Countermeasures,Bulk supplies
+Ship Noise Countermeasures,Bulk supplies
+Silicon,Non-metal
+Silnex,Synthetic materials
 SLAM,Vice
-Souvenirs,Consumer Goods
+Souvenirs,Processed goods
 Steel,Alloy
 Stileron,Metal
 Stims,Vice
-Sunset Berries,Natural
+Sunset Berries,Food
 Taranite,Mineral
-Taranite (Raw),Mineral
-Thermalfoam,Consumer Goods
+ThermalFoam,Synthetic materials
+Thrust,Vice
 Tin,Metal
 Titanium,Metal
-Titanium (Ore),Metal
+Torite,Metal
+Tritium,Gas
 Tungsten,Metal
-Tungsten (Ore),Metal
+Uncut SLAM,Vice
+Valakkar Fang,Organic
+Virus Cultures,Organic
 Waste,Waste
-WiDow,Vice
-Xa' Pyen,Metal
-Year of the Dog Envelope,Consumer Goods
-Year of the Monkey Envelope,Consumer Goods
-Year of the Pig,Consumer Goods
-Year of the Ram Envelope,Consumer Goods
-Year of the Rooster Envelope,Consumer Goods
+WiDoW,Vice
+Xa'Pyen,Alloy
+Year of the Rat Envelope,Processed goods
+Zeta-Prolanide,Processed goods
+Zip,Vice

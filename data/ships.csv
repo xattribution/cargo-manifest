@@ -2,32 +2,36 @@ Name,SCU,MaxSize,Grid32,Grid24,Grid16,Grid8,Grid4,Grid2,Grid1,Owned
 100i,2,,,,,,,,,No
 125a,2,,,,,,,,,No
 135c,6,,,,,,,,,No
+300i,8,,,,,,,,,No
+315p,12,,,,,,,,,No
+325a,4,,,,,,,,,No
+350r,4,,,,,,,,,No
 400i,42,,,,,,,,,No
-600i Explorer,40,,,,,,,,,No
-600i Touring,16,,,,,,,,,No
-85x,0,,,,,,,,,No
-890 Jump,1600,,,,,,,,,No
-A2 Hercules,234,,,,,,,,,No
-ANVL Crucible,230,,,,,,,,,No
-ANVL_F7A,0,,,,,,,,,No
-Apollo Medivac,28,,,,,,,,,No
-Apollo Triage,28,,,,,,,,,No
-Ares Inferno,0,,,,,,,,,No
-Ares Ion,0,,,,,,,,,No
-Argo Mole,69,,,,,,,,,No
-Argo Mole Carbon,69,,,,,,,,,No
-Argo Mole Talus,69,,,,,,,,,No
-Argo MPUV Cargo,2,,,,,,,,,No
-Argo MPUV Personal,0,,,,,,,,,No
-Argo RAFT,96,,,,,,,,,No
-ARGO SRV,0,,,,,,,,,No
+600i Executive Edition,44,,,,,,,,,No
+600i Explorer,44,,,,,,,,,No
+600i Touring,20,,,,,,,,,No
+85X,0,,,,,,,,,No
+890 Jump,388,,,,,,,,,No
+A1 Spirit,0,,,,,,,,,No
+A2 Hercules Starlifter,216,,,,,,,,,No
+ATLS,0,,,,,,,,,No
+ATLS GEO,0.1,,,,,,,,,No
+ATLS GEO IKTI,0,,,,,,,,,No
+ATLS IKTI,0,,,,,,,,,No
+Apollo Medivac,32,,,,,,,,,No
+Apollo Triage,32,,,,,,,,,No
+Ares Star Fighter Inferno,0,,,,,,,,,No
+Ares Star Fighter Ion,0,,,,,,,,,No
+Arrastra,576,,,,,,,,,No
 Arrow,0,,,,,,,,,No
 Asgard,180,,,,,,,,,No
-Aurora CL,6,,,,,,,,,No
-Aurora ES,0,,,,,,,,,No
-Aurora LN,0,,,,,,,,,No
-Aurora LX,3,,,,,,,,,No
-Aurora MR,3,,,,,,,,,No
+Aurora Mk I CL,6,,,,,,,,,No
+Aurora Mk I ES,3,,,,,,,,,No
+Aurora Mk I LN,3,,,,,,,,,No
+Aurora Mk I LX,3,,,,,,,,,No
+Aurora Mk I MR,3,,,,,,,,,No
+Aurora Mk I SE,6,,,,,,,,,No
+Aurora Mk II,2.244,,,,,,,,,No
 Avenger Stalker,0,,,,,,,,,No
 Avenger Titan,8,,,,,,,,,No
 Avenger Titan Renegade,8,,,,,,,,,No
@@ -35,15 +39,19 @@ Avenger Warlock,0,,,,,,,,,No
 Ballista,0,,,,,,,,,No
 Ballista Dunestalker,0,,,,,,,,,No
 Ballista Snowblind,0,,,,,,,,,No
+Blade (replica),0,,,,,,,,,No
 Buccaneer,0,,,,,,,,,No
 C1 Spirit,64,,,,,,,,,No
-C2 Hercules,696,,,,,,,,,No
-C8 Pisces,0,,,,,,,,,No
+C2 Hercules Starlifter,696,,,,,,,,,No
+C8R Pisces Rescue,0,,,,,,,,,No
 C8X Pisces Expedition,4,,,,,,,,,No
+CSV-SM,4,,,,,,,,,No
 Carrack,456,,,,,,,,,No
 Carrack Expedition,456,,,,,,,,,No
 Caterpillar,576,,,,,,,,,No
-Caterpillar PE,566,,,,,,,,,No
+Caterpillar Best In Show Edition,576,,,,,,,,,No
+Caterpillar Pirate Edition,576,,,,,,,,,No
+Centurion,0,,,,,,,,,No
 Clipper,12,,,,,,,,,No
 Constellation Andromeda,96,,,,,,,,,No
 Constellation Aquila,96,,,,,,,,,No
@@ -51,127 +59,198 @@ Constellation Phoenix,80,,,,,,,,,No
 Constellation Phoenix Emerald,80,,,,,,,,,No
 Constellation Taurus,174,,,,,,,,,No
 Corsair,72,,,,,,,,,No
+Crucible,230,,,,,,,,,No
 Cutlass Black,46,,,,,,,,,No
-Cutlass Blue,25,,,,,,,,,No
-Cutlass Red,16,,,,,,,,,No
+Cutlass Black Best In Show Edition,46,,,,,,,,,No
+Cutlass Blue,12,,,,,,,,,No
+Cutlass Red,12,,,,,,,,,No
+Cutlass Steel,0,,,,,,,,,No
+Cutter,4,,,,,,,,,No
+Cutter Rambler,2,,,,,,,,,No
+Cutter Scout,2,,,,,,,,,No
 Cyclone,1,,,,,,,,,No
-Cyclone-AA,0,,,,,,,,,No
-Cyclone-MT,0,,,,,,,,,No
-Cyclone-RC,0,,,,,,,,,No
-Cyclone-RN,0,,,,,,,,,No
-Cyclone-TR,0,,,,,,,,,No
+Cyclone AA,0,,,,,,,,,No
+Cyclone MT,0,,,,,,,,,No
+Cyclone RC,0,,,,,,,,,No
+Cyclone RN,0,,,,,,,,,No
+Cyclone TR,0,,,,,,,,,No
 Defender,0,,,,,,,,,No
 Dragonfly Black,0,,,,,,,,,No
+Dragonfly Star Kitten,0,,,,,,,,,No
 Dragonfly Yellowjacket,0,,,,,,,,,No
+E1 Spirit,0,,,,,,,,,No
 Eclipse,0,,,,,,,,,No
 Endeavor,500,,,,,,,,,No
-Esperia Blade,0,,,,,,,,,No
-Esperia Glaive,0,,,,,,,,,No
-F7C Hornet,2,,,,,,,,,No
-F7C Hornet Wildfire,0,,,,,,,,,No
-F7C-M Super Hornet,0,,,,,,,,,No
-F7C-S Hornet Ghost,0,,,,,,,,,No
-F7CR Hornet,0,,,,,,,,,No
+Expanse,64,,,,,,,,,No
+F7A Hornet Mk II,2,,,,,,,,,No
+F7C Hornet Mk I,2,,,,,,,,,No
+F7C Hornet Mk II,2,,,,,,,,,No
+F7C Hornet Wildfire Mk I,0,,,,,,,,,No
+F7C-M Hornet Heartseeker Mk II,0,,,,,,,,,No
+F7C-M Super Hornet Heartseeker Mk I,0,,,,,,,,,No
+F7C-M Super Hornet Mk I,0,,,,,,,,,No
+F7C-M Super Hornet Mk II,0,,,,,,,,,No
+F7C-R Hornet Tracker Mk I,0,,,,,,,,,No
+F7C-R Hornet Tracker Mk II,0,,,,,,,,,No
+F7C-S Hornet Ghost Mk I,0,,,,,,,,,No
+F7C-S Hornet Ghost Mk II,0,,,,,,,,,No
+F8C Lightning,0,,,,,,,,,No
+Fortune,16,,,,,,,,,No
 Freelancer,66,,,,,,,,,No
-Freelancer Dur,36,,,,,,,,,No
-Freelancer Max,120,,,,,,,,,No
-Freelancer MIS,28,,,,,,,,,No
-Gatac Railen,0,,,,,,,,,No
+Freelancer DUR,36,,,,,,,,,No
+Freelancer MAX,120,,,,,,,,,No
+Freelancer MIS,36,,,,,,,,,No
+Fury,0,,,,,,,,,No
+Fury LX,0,,,,,,,,,No
+Fury MX,0,,,,,,,,,No
+G12,2,,,,,,,,,No
+G12a,0,,,,,,,,,No
+G12r,0,,,,,,,,,No
+Galaxy,64,,,,,,,,,No
 Genesis Starliner,300,,,,,,,,,No
-Geotack Planetary Beacon,0,,,,,,,,,No
-Geotack-X Planetary Beacon,0,,,,,,,,,No
 Gladiator,0,,,,,,,,,No
 Gladius,0,,,,,,,,,No
+Gladius Dunlevy,0,,,,,,,,,No
+Gladius Pirate,0,,,,,,,,,No
 Gladius Valiant,0,,,,,,,,,No
-Greycat Buggy,0,,,,,,,,,No
-Hammerhead,40,,,,,,,,,No
+Glaive (replica),0,,,,,,,,,No
+Golem,32,,,,,,,,,No
+Golem OX,64,,,,,,,,,No
+Guardian,0,,,,,,,,,No
+Guardian MX,0,,,,,,,,,No
+Guardian QI,0,,,,,,,,,No
+Hammerhead,64,,,,,,,,,No
+Hammerhead Best In Show Edition,40,,,,,,,,,No
 Hawk,0,,,,,,,,,No
 Herald,0,,,,,,,,,No
-Hornet F7C-M Heartseeker,0,,,,,,,,,No
+Hermes,288,,,,,,,,,No
+HoverQuad,0,,,,,,,,,No
 Hull A,64,,,,,,,,,No
 Hull B,512,,,,,,,,,No
 Hull C,4608,,,,,,,,,No
-Hull D,20736,,,,,,,,,No
-Hull E,98304,,,,,,,,,No
+Hull D,6912,,,,,,,,,No
+Hull E,12288,,,,,,,,,No
 Hurricane,0,,,,,,,,,No
-Idris-M,831,,,,,,,,,No
-Idris-P,995,,,,,,,,,No
+Idris-M,1326,,,,,,,,,No
+Idris-P,1374,,,,,,,,,No
+Intrepid,8,,,,,,,,,No
 Ironclad,2200,,,,,,,,,No
 Ironclad Assault,1440,,,,,,,,,No
 Javelin,5400,,,,,,,,,No
-Khartu-Al,0,,,,,,,,,No
+Khartu-al,0,,,,,,,,,No
 Kraken,3792,,,,,,,,,No
-Kraken Privateer,0,,,,,,,,,No
-Krueger P52 Merlin,0,,,,,,,,,No
-Liberator,0,,,,,,,,,No
-Lightning F8C,0,,,,,,,,,No
-M2 Hercules,468,,,,,,,,,No
-M80,2,,,,,,,,,No
+Kraken Privateer,768,,,,,,,,,No
+L-21 Wolf,0,,,,,,,,,No
+L-22 Alpha Wolf,0,,,,,,,,,No
+Legionnaire,0,,,,,,,,,No
+Liberator,400,,,,,,,,,No
+Lynx,0,,,,,,,,,No
+M2 Hercules Starlifter,522,,,,,,,,,No
+M50,0,,,,,,,,,No
+M80,2.366,,,,,,,,,No
+MDC,0.25,,,,,,,,,No
+MOLE,96,,,,,,,,,No
+MOLE Carbon,,,,,,,,,,No
+MOLE Talus,96,,,,,,,,,No
+MOTH,224,,,,,,,,,No
+MPUV Cargo,2,,,,,,,,,No
+MPUV Personnel,0,,,,,,,,,No
+MPUV Tractor,16,,,,,,,,,No
+MTC,0.5,,,,,,,,,No
 Mantis,0,,,,,,,,,No
-Merchantman,3584,,,,,,,,,No
+Mauler,0,,,,,,,,,No
+Merchantman,2880,,,,,,,,,No
 Mercury Star Runner,114,,,,,,,,,No
+Meteor,0,,,,,,,,,No
+Mule,1,,,,,,,,,No
 Mustang Alpha,4,,,,,,,,,No
 Mustang Alpha Vindicator,4,,,,,,,,,No
 Mustang Beta,0,,,,,,,,,No
 Mustang Delta,0,,,,,,,,,No
 Mustang Gamma,0,,,,,,,,,No
 Mustang Omega,0,,,,,,,,,No
-Nautilus,0,,,,,,,,,No
-Nautilus Solstice Edition,0,,,,,,,,,No
+Nautilus,64,,,,,,,,,No
 Nomad,24,,,,,,,,,No
+Nova,0,,,,,,,,,No
 Nox,0,,,,,,,,,No
 Nox Kue,0,,,,,,,,,No
-Odyssey,0,,,,,,,,,No
-Origin 300i,8,,,,,,,,,No
-Origin 315p,12,,,,,,,,,No
-Origin 325a,4,,,,,,,,,No
-Origin 350r,0,,,,,,,,,No
-Origin M50,0,,,,,,,,,No
+Odin,8000,,,,,,,,,No
+Odyssey,252,,,,,,,,,No
 Orion,384,,,,,,,,,No
+P-52 Merlin,0,,,,,,,,,No
 P-72 Archimedes,0,,,,,,,,,No
-Perseus,0,,,,,,,,,No
-Pioneer,600,,,,,,,,,No
+P-72 Archimedes Emerald,0,,,,,,,,,No
+PTV,0,,,,,,,,,No
+Paladin,4,,,,,,,,,No
+Perseus,96,,,,,,,,,No
+Pioneer,1000,,,,,,,,,No
 Pitbull,0,,,,,,,,,No
-Polaris,216,,,,,,,,,No
+Polaris,576,,,,,,,,,No
 Prospector,32,,,,,,,,,No
 Prowler,0,,,,,,,,,No
-Ranger CV,0,,,,,,,,,No
+Prowler Utility,32,,,,,,,,,No
+Pulse,0,,,,,,,,,No
+Pulse LX,0,,,,,,,,,No
+RAFT,192,,,,,,,,,No
+ROC,1.2,,,,,,,,,No
+ROC-DS,3.4,,,,,,,,,No
+Railen,640,,,,,,,,,No
+Ranger CV,0.375,,,,,,,,,No
 Ranger RC,0,,,,,,,,,No
 Ranger TR,0,,,,,,,,,No
 Razor,0,,,,,,,,,No
 Razor EX,0,,,,,,,,,No
 Razor LX,0,,,,,,,,,No
-Reclaimer,180,,,,,,,,,No
-Redeemer,0,,,,,,,,,No
+Reclaimer,420,,,,,,,,,No
+Reclaimer Best In Show Edition,420,,,,,,,,,No
+Redeemer,2,,,,,,,,,No
 Reliant Kore,6,,,,,,,,,No
 Reliant Mako,0,,,,,,,,,No
-Reliant Sen,2,,,,,,,,,No
-Reliant Tana,0,,,,,,,,,No
+Reliant Sen,0,,,,,,,,,No
+Reliant Tana,1,,,,,,,,,No
 Retaliator,0,,,,,,,,,No
-Retaliator Bomber,0,,,,,,,,,No
+SRV,12,,,,,,,,,No
+STV,0.2,,,,,,,,,No
 Sabre,0,,,,,,,,,No
 Sabre Comet,0,,,,,,,,,No
-Sabre Raven,0,,,,,,,,,No
-San'tok.yai,0,,,,,,,,,No
+Sabre Firebird,0,,,,,,,,,No
+Sabre Peregrine,0,,,,,,,,,No
+Salvation,6,,,,,,,,,No
+San'tok.y?i,0,,,,,,,,,No
 Scorpius,0,,,,,,,,,No
-Starfarer,295,,,,,,,,,No
-Starfarer Gemini,295,,,,,,,,,No
-Starlancer Max,224,,,,,,,,,No
+Scorpius Antares,0,,,,,,,,,No
+Scythe (replica),0,,,,,,,,,No
+Shiv,32,,,,,,,,,No
+Spartan,0,,,,,,,,,No
+Starfarer,291,,,,,,,,,No
+Starfarer Gemini,291,,,,,,,,,No
+Starlancer MAX,224,,,,,,,,,No
+Starlancer TAC,96,,,,,,,,,No
+Starlite,,,,,,,,,,No
+Stinger (replica),0,,,,,,,,,No
+Storm,0,,,,,,,,,No
+Storm AA,0,,,,,,,,,No
+Syulen,6,,,,,,,,,No
 Talon,0,,,,,,,,,No
 Talon Shrike,0,,,,,,,,,No
 Terrapin,0,,,,,,,,,No
-Tumbril - Nova Tank,0,,,,,,,,,No
-Ursa Rover,4,,,,,,,,,No
-Ursa Rover Fortuna,0,,,,,,,,,No
-Valkyrie,30,,,,,,,,,No
-Valkyrie Liberator Edition,30,,,,,,,,,No
-Vanduul Scythe,0,,,,,,,,,No
+Terrapin Medic,0,,,,,,,,,No
+Tiburon,64,,,,,,,,,No
+UTV,1,,,,,,,,,No
+Ursa,0,,,,,,,,,No
+Ursa Fortuna,0,,,,,,,,,No
+Ursa Medivac,0,,,,,,,,,No
+Valkyrie,90,,,,,,,,,No
+Valkyrie Liberator,90,,,,,,,,,No
 Vanguard Harbinger,0,,,,,,,,,No
 Vanguard Hoplite,0,,,,,,,,,No
 Vanguard Sentinel,0,,,,,,,,,No
 Vanguard Warden,0,,,,,,,,,No
 Vulcan,12,,,,,,,,,No
 Vulture,12,,,,,,,,,No
-X1 Base,0,,,,,,,,,No
+X1,0,,,,,,,,,No
 X1 Force,0,,,,,,,,,No
 X1 Velocity,0,,,,,,,,,No
+Zeus Mk II CL,128,,,,,,,,,No
+Zeus Mk II ES,32,,,,,,,,,No
+Zeus Mk II MR,16,,,,,,,,,No
