@@ -73,7 +73,7 @@
 
 <svelte:window onclick={() => (menuOpen = false)} />
 
-<div class="app" class:nav-open={navOpen}>
+<div class="app" class:nav-open={navOpen} class:sb-collapsed={prefs.sidebarCollapsed}>
   <!-- ===== Sidebar: brand + fleet management ===== -->
   <aside class="sidebar">
     <div class="brand">
@@ -83,6 +83,7 @@
         </svg>
       </span>
       <span class="brand-txt">CARGO<b>MANIFEST</b></span>
+      <button class="sb-collapse" title="Collapse sidebar" aria-label="Collapse sidebar" onclick={() => prefs.toggleSidebar()}>«</button>
       <button class="nav-x" aria-label="Close menu" onclick={() => (navOpen = false)}>✕</button>
     </div>
 
@@ -129,6 +130,7 @@
   <!-- ===== Workspace ===== -->
   <main class="main">
     <button class="nav-toggle" aria-label="Menu" onclick={() => (navOpen = true)}>☰</button>
+    <button class="sb-expand" title="Show sidebar" aria-label="Show sidebar" onclick={() => prefs.toggleSidebar()}>»</button>
 
     <Zone accent="var(--c-overview)" title="Overview">
       <Overview />

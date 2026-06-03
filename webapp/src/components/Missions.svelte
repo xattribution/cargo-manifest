@@ -5,7 +5,9 @@
   import { missionColor, missionFg } from '../lib/mission';
   import { ALL_SIZES } from '../lib/crate';
   import { nameKey, shipFit } from '../lib/catalog';
+  import { prefs } from '../lib/prefs.svelte';
   import MissionImport from './MissionImport.svelte';
+  import Modal from './Modal.svelte';
   import type { CatalogRow } from '../lib/types';
 
   const rollups = $derived(missionRollups(run.state.sections, run.state.missionOrder));
@@ -37,10 +39,29 @@
     const m = run.addMission();
     if (m == null) alert('All 10 mission slots are in use.');
   }
+  // Delete confirmation dialog (so we can offer "don't remind me again", which native
+  // confirm() can't). null = closed; {mission:n} = single; {all:true} = clear all.
+  let confirmDel = $state<{ mission?: number; all?: boolean; items: number; label: string } | null>(null);
+  let dontRemind = $state(false);
+
   function delMission(m: number, items: number) {
-    const label = run.state.missionNames[m] || `Mission ${m}`;
-    if (items > 0 && !confirm(`Delete “${label}” and its ${items} manifest line${items === 1 ? '' : 's'}? This can’t be undone.`)) return;
-    run.deleteMission(m);
+    if (items === 0 || prefs.skipMissionDeleteWarn) { run.deleteMission(m); return; }
+    dontRemind = false;
+    confirmDel = { mission: m, items, label: run.state.missionNames[m] || `Mission ${m}` };
+  }
+  function clearAllMissions() {
+    const items = rollups.reduce((a, r) => a + r.items, 0);
+    if (items === 0) { run.clearMissions(); return; }
+    if (prefs.skipMissionDeleteWarn) { run.clearMissions(); return; }
+    dontRemind = false;
+    confirmDel = { all: true, items, label: `all ${rollups.length} missions` };
+  }
+  function doConfirmDel() {
+    if (!confirmDel) return;
+    if (dontRemind) prefs.setSkipMissionDeleteWarn(true);
+    if (confirmDel.all) run.clearMissions();
+    else if (confirmDel.mission != null) run.deleteMission(confirmDel.mission);
+    confirmDel = null;
   }
 
   // pointer drag-reorder by the grip
@@ -66,6 +87,7 @@
 <div class="m-toolbar">
   <button class="btn ghost sm" onclick={() => (importOpen = true)} title="Import a mission from a screenshot">⎙ Import mission screenshot</button>
   <button class="btn ghost sm" onclick={addMission}>+ Add mission</button>
+  {#if rollups.length}<button class="btn ghost sm danger" onclick={clearAllMissions} title="Delete every mission and its manifest lines">⌫ Clear all</button>{/if}
   <div class="m-pct" title="Plan a partial submission — useful for rep grinding when a fraction of a mission still pays full(er) rep for the time.">
     <span class="m-pct-l">Submit</span>
     <input class="m-pct-range" type="range" min="5" max="100" step="5" value={pct}
@@ -152,4 +174,21 @@
 
 {#if importOpen && firstTripId}
   <MissionImport tripId={firstTripId} onClose={() => (importOpen = false)} />
+{/if}
+
+{#if confirmDel}
+  <Modal title={confirmDel.all ? 'Clear all missions' : 'Delete mission'} onClose={() => (confirmDel = null)}>
+    <p class="cd-msg">
+      {#if confirmDel.all}
+        Delete <b>{confirmDel.label}</b> and <b>{confirmDel.items}</b> manifest line{confirmDel.items === 1 ? '' : 's'}? This can’t be undone.
+      {:else}
+        Delete <b>{confirmDel.label}</b> and its <b>{confirmDel.items}</b> manifest line{confirmDel.items === 1 ? '' : 's'}? This can’t be undone.
+      {/if}
+    </p>
+    <label class="cd-skip"><input type="checkbox" bind:checked={dontRemind} /> Don’t remind me again</label>
+    <div class="modal-actions">
+      <button class="btn" onclick={() => (confirmDel = null)}>Cancel</button>
+      <button class="btn accent danger" onclick={doConfirmDel}>{confirmDel.all ? 'Clear all' : 'Delete'}</button>
+    </div>
+  </Modal>
 {/if}

@@ -9,6 +9,21 @@ chronological record of what changed and the reasoning behind each call.
 
 ---
 
+## v0.19 — collapsible sidebar + mission delete UX
+
+- **Desktop sidebar collapse**: `«` in the sidebar brand tucks it away (workspace goes
+  full-width); a floating `»` button restores it. Persisted (`prefs.sidebarCollapsed`,
+  `cargo:webapp:sidebarCollapsed`). Independent of the existing mobile off-canvas drawer
+  (the ≤900px media query neutralizes the desktop collapse so they don't fight).
+- **Mission delete dialog** replaces the native `confirm()` so it can offer **"Don't remind
+  me again"** (persisted as `prefs.skipMissionDeleteWarn`). Once set, single + clear-all
+  deletes skip the prompt. Deleting an empty mission never prompts.
+- **Clear all missions**: new `run.clearMissions()` + a red **⌫ Clear all** button in the
+  Missions toolbar (wipes every cargo line and all mission metadata, keeps empty trips),
+  routed through the same confirm dialog.
+
+---
+
 ## v0.18 — partial-completion route optimizer (Drop Off)
 
 - New `lib/optimize.ts → optimizeDropoff(destStats, pct)`. When the Missions "Submit %" slider

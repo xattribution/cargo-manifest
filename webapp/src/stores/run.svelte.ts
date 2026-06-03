@@ -123,6 +123,14 @@ function createRun() {
       delete state.missionRewards[mission];
       state.missionOrder = state.missionOrder.filter((n) => n !== mission);
     },
+    // Clear ALL missions: wipe every cargo line + all mission metadata (keeps empty trips).
+    clearMissions() {
+      for (const sec of state.sections) sec.items = [];
+      state.missionShips = {};
+      state.missionNames = {};
+      state.missionRewards = {};
+      state.missionOrder = [];
+    },
     // Persist the Missions panel display order (list of mission #s, top-to-bottom).
     setMissionOrder(order: number[]) { state.missionOrder = order; },
     setCompletionPct(pct: number) { state.completionPct = Math.max(1, Math.min(100, Math.round(pct))); },
