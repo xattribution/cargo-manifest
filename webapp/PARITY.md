@@ -9,6 +9,21 @@ chronological record of what changed and the reasoning behind each call.
 
 ---
 
+## v0.17 — partial-completion planner + import button moved
+
+- **Partial-completion planner** in the Missions area: a **Submit %** slider (5–100, step 5;
+  persisted as `RunState.completionPct`, default 100). Below 100% the table shows a per-mission
+  **"Submit N%" target SCU** column (`ceil(missionSCU × pct/100)` — rounds up so you clear the
+  threshold), and the footer + a note show the total target SCU and the **prorated reward**
+  (`round(totalReward × pct/100)`). Purpose: rep grinding — submit a fraction of a high-tier
+  haul for proportional reward when that's the better time trade. At 100% the column/note hide
+  (clean no-op). Per-mission reward inputs still hold the full-completion payout from the
+  contract; only the displayed total prorates.
+- **Moved the "Import mission screenshot" button** out of each trip header into the Missions
+  toolbar (it imports into the first/primary trip). Reads better there.
+
+---
+
 ## v0.16 — mission management + small UX
 
 - Default run name is now **"Cargo Haul"** (was "Untitled Run").

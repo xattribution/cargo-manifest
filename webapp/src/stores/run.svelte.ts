@@ -34,6 +34,7 @@ function defaultState(): RunState {
     missionNames: {},
     missionRewards: {},
     missionOrder: [],
+    completionPct: 100,
     pickOrder: [],
     dropOrder: [],
   };
@@ -49,6 +50,7 @@ export function migrate(saved: unknown): RunState {
   s.missionNames = o.missionNames && typeof o.missionNames === 'object' ? o.missionNames : {};
   s.missionRewards = o.missionRewards && typeof o.missionRewards === 'object' ? o.missionRewards : {};
   s.missionOrder = Array.isArray(o.missionOrder) ? o.missionOrder.filter((n: any) => Number.isInteger(n)) : [];
+  s.completionPct = typeof o.completionPct === 'number' && o.completionPct >= 1 && o.completionPct <= 100 ? o.completionPct : 100;
   s.pickOrder = Array.isArray(o.pickOrder) ? o.pickOrder : [];
   s.dropOrder = Array.isArray(o.dropOrder) ? o.dropOrder : [];
   s.colW = Object.assign({ ...DEFAULT_COLW }, o.colW || {});
@@ -123,6 +125,7 @@ function createRun() {
     },
     // Persist the Missions panel display order (list of mission #s, top-to-bottom).
     setMissionOrder(order: number[]) { state.missionOrder = order; },
+    setCompletionPct(pct: number) { state.completionPct = Math.max(1, Math.min(100, Math.round(pct))); },
     moveMission(mission: number, toIndex: number, currentOrder: number[]) {
       const arr = currentOrder.slice();
       const from = arr.indexOf(mission);

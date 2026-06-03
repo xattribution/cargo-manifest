@@ -47,6 +47,7 @@ export interface RunState {
   missionNames: Record<number, string>; // mission # -> optional label
   missionRewards: Record<number, number>; // mission # -> reward in aUEC (assumes 100% completion)
   missionOrder: number[]; // display order of mission #s in the Missions panel; also keeps "blank" missions visible
+  completionPct: number; // 1..100 — partial-completion planner: how much of each mission to submit
   pickOrder: string[]; // manual ordering of Pick Up cards (by source key); unknown keys fall to the end
   dropOrder: string[]; // manual ordering of Drop Off cards (by destination key)
 }
