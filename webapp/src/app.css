@@ -113,6 +113,15 @@ input{font-family:var(--body)}
   linear-gradient(var(--rule-soft) 1px, transparent 1px) 0 0 / 100% 28px,
   var(--paper)}
 .nav-toggle{display:none;position:fixed;top:10px;left:10px;z-index:130;background:var(--side2);border:1px solid var(--side-line);color:var(--side-ink);width:36px;height:36px;font-size:16px}
+/* desktop sidebar collapse */
+.sb-collapse{margin-left:auto;background:transparent;border:0;color:var(--side-dim);font-size:16px;line-height:1;padding:0 2px;cursor:pointer}
+.sb-collapse:hover{color:#fff}
+.sb-expand{display:none;position:fixed;top:10px;left:10px;z-index:130;background:var(--side2);border:1px solid var(--side-line);color:var(--side-ink);width:34px;height:34px;font-size:15px}
+.sb-expand:hover{border-color:var(--cyan);color:#fff}
+.app.sb-collapsed{grid-template-columns:0 1fr}
+.app.sb-collapsed .sidebar{transform:translateX(-100%);transition:transform .2s}
+.app.sb-collapsed .sb-expand{display:block}
+.app.sb-collapsed .main{padding-top:54px}
 
 /* run summary in the sidebar */
 .run-strip{padding:10px 14px;border-bottom:1px solid var(--side-line)}
@@ -349,11 +358,16 @@ tr.item-row.dragging{opacity:.45}
 /* ---- mobile ---- */
 .nav-backdrop{display:none}
 @media(max-width:900px){
-  .app{grid-template-columns:1fr}
+  /* mobile: sidebar is an off-canvas drawer (navOpen); ignore desktop collapse */
+  .app, .app.sb-collapsed{grid-template-columns:1fr}
   .sidebar{position:fixed;left:0;top:0;width:var(--sidebar-w);z-index:120;transform:translateX(-100%);transition:transform .2s}
   .app.nav-open .sidebar{transform:none}
+  .app.sb-collapsed .sidebar{transform:translateX(-100%)}
+  .app.nav-open.sb-collapsed .sidebar{transform:none}
   .nav-x{display:block}
+  .sb-collapse{display:none}
   .nav-toggle{display:block}
+  .sb-expand,.app.sb-collapsed .sb-expand{display:none}
   .app.nav-open .nav-backdrop{display:block;position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.45);border:0}
   .routes{grid-template-columns:1fr}
   .main{padding:54px 12px 50px}
@@ -469,3 +483,10 @@ tr.item-row.dragging{opacity:.45}
 .opt-star{color:var(--green);margin-right:4px}
 .opt-deliver{font-family:var(--mono);font-size:11.5px;color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent);border:1px solid color-mix(in srgb,var(--green) 35%,var(--rule));padding:3px 8px;margin:6px 0 0 22px;display:inline-block}
 .opt-deliver b{color:var(--ink)}
+
+/* mission delete confirm dialog */
+.cd-msg{font-size:13.5px;color:var(--ink);line-height:1.55;margin:0 0 12px}
+.cd-skip{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-dim);cursor:pointer}
+.cd-skip input{width:15px;height:15px;accent-color:var(--cyan);cursor:pointer}
+.btn.accent.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn.accent.danger:hover{filter:brightness(1.08);color:#fff}
