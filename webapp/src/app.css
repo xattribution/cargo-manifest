@@ -460,3 +460,12 @@ tr.item-row.dragging{opacity:.45}
 .mtbl tr.mrow .mt-tgt{color:var(--mfg);font-weight:700}
 .m-pct-note{margin-top:8px;font-size:12.5px;color:var(--ink-dim);border-left:3px solid var(--cyan);background:var(--paper2);padding:7px 11px}
 .m-pct-note b{color:var(--ink)}
+
+/* ---- drop-off route optimizer (partial-completion %) ---- */
+.route-opt{margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.3px;color:#fff;background:rgba(0,0,0,.22);padding:2px 8px;white-space:nowrap}
+.gcard.opt-dim{opacity:.4;filter:grayscale(.5)}
+.gcard.on-route{box-shadow:inset 3px 0 0 var(--accent), 0 0 0 1px var(--green)}
+.gcard.opt-best{box-shadow:inset 3px 0 0 var(--accent), 0 0 0 2px var(--green);background:color-mix(in srgb,var(--green) 9%,var(--card))}
+.opt-star{color:var(--green);margin-right:4px}
+.opt-deliver{font-family:var(--mono);font-size:11.5px;color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent);border:1px solid color-mix(in srgb,var(--green) 35%,var(--rule));padding:3px 8px;margin:6px 0 0 22px;display:inline-block}
+.opt-deliver b{color:var(--ink)}

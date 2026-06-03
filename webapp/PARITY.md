@@ -9,6 +9,25 @@ chronological record of what changed and the reasoning behind each call.
 
 ---
 
+## v0.18 — partial-completion route optimizer (Drop Off)
+
+- New `lib/optimize.ts → optimizeDropoff(destStats, pct)`. When the Missions "Submit %" slider
+  is < 100, the **Drop Off** column optimizes the route: deliver ≥ pct% of the total load in the
+  **fewest stops**, preferring the single destination covering the **most missions** then the
+  **least cargo** (least overkill). Drop-off cards: **★ best** (green outline) + recommended on
+  the route, qualifying destinations normal, and destinations that can't reach the target alone
+  are **greyed out**. Header shows `◎ pct% route · target N SCU`.
+- **Box-honest delivery:** each recommended card shows a `deliver N SCU (a×s …)` line —
+  `minCrateSubset(totals, target)` finds the smallest WHOLE-crate subset (using only the box
+  sizes already in the manifest; no repackaging) that reaches the target. Exact 0/1 bounded
+  subset-sum DP for normal loads; greedy largest-first fallback for very large ones.
+- If no single stop reaches the target, recommends the minimal largest-first multi-stop combo
+  (last stop trimmed to just the remaining need).
+- Verified against the canonical example (Everus 35 / Tressler 20 / Baijini 20 / Seraphim 25 at
+  25% → ★ Seraphim, deliver 25; Tressler/Baijini greyed) and the most-missions tiebreak.
+
+---
+
 ## v0.17 — partial-completion planner + import button moved
 
 - **Partial-completion planner** in the Missions area: a **Submit %** slider (5–100, step 5;

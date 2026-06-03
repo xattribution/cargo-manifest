@@ -1,13 +1,14 @@
 <script lang="ts">
   import { run } from '../stores/run.svelte';
-  import { aggregate, groupEntries, flatEntries } from '../lib/crate';
+  import { aggregate, groupEntries, flatEntries, ALL_SIZES } from '../lib/crate';
   import { missionColor, missionFg } from '../lib/mission';
   import { pillList } from '../lib/format';
   import type { Entry } from '../lib/crate';
   import type { Item } from '../lib/types';
+  import type { OptResult } from '../lib/optimize';
 
   let {
-    field, cls, mode, labelField, otherField, otherPrefix,
+    field, cls, mode, labelField, otherField, otherPrefix, opt = undefined,
   }: {
     field: 'destination' | 'source';
     cls: 'dest' | 'src';
@@ -15,6 +16,7 @@
     labelField: 'commodity';
     otherField: 'source' | 'destination';
     otherPrefix: string;
+    opt?: OptResult;
   } = $props();
 
   const which = $derived(mode === 'pickup' ? 'pick' : 'drop');
@@ -90,7 +92,12 @@
     <div class="empty-cards">Nothing here yet.</div>
   {:else}
     {#each groups as g (g.key)}
-      <div class="gcard {cls}" class:done={g.allDone} class:dragging={dragKey === g.key} data-key={g.key}>
+      {@const onRoute = !!opt?.active && opt.recommended.has(g.key)}
+      {@const isBest = !!opt?.active && opt.best === g.key}
+      {@const dimmed = !!opt?.active && !opt.recommended.has(g.key) && !opt.qualifying.has(g.key)}
+      {@const plan = opt?.active ? opt.plans[g.key] : undefined}
+      <div class="gcard {cls}" class:done={g.allDone} class:dragging={dragKey === g.key}
+        class:on-route={onRoute} class:opt-best={isBest} class:opt-dim={dimmed} data-key={g.key}>
         <div class="ghead">
           <span class="cgrip" role="button" tabindex="-1" aria-label="Drag to reorder" title="Drag to reorder"
             onpointerdown={(e) => startDrag(g.key, e)}>⠿</span>
@@ -98,8 +105,13 @@
             title={mode === 'pickup' ? 'Mark as picked up (visual reminder only)' : 'Mark this drop-off complete'}
             checked={g.allDone} indeterminate={g.someDone && !g.allDone}
             onchange={() => toggle(g)} />
-          <div class="gname">{g.key} <span class="gscu">{g.agg.scu.toLocaleString()} SCU</span></div>
+          <div class="gname">{#if isBest}<span class="opt-star" title="Best stop for {opt?.pct}%: fewest stops, least cargo">★</span>{/if}{g.key} <span class="gscu">{g.agg.scu.toLocaleString()} SCU</span></div>
         </div>
+        {#if onRoute && plan}
+          <div class="opt-deliver" title="Whole crates to drop here to reach the {opt?.pct}% target — using only the boxes you already have.">
+            deliver <b>{plan.scu.toLocaleString()} SCU</b> ({ALL_SIZES.filter((s) => plan.counts[s]).map((s) => `${plan.counts[s]}×${s}`).join(' ')}{#if !ALL_SIZES.some((s) => plan.counts[s])}—{/if})
+          </div>
+        {/if}
         <div class="gpills">
           {#each pillList(g.agg.totals) as p}<span class="pill {p.cls}">{p.n}<span class="mult">×</span>{p.size}</span>{/each}
           {#if g.agg.leftover > 0}<span class="pill leftover">{g.agg.leftover} unpacked</span>{/if}
