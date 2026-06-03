@@ -3,11 +3,9 @@
   import { prefs } from '../lib/prefs.svelte';
   import { aggregate, enabledDesc, ALL_SIZES } from '../lib/crate';
   import ItemRow from './ItemRow.svelte';
-  import MissionImport from './MissionImport.svelte';
   import type { Trip } from '../lib/types';
 
   let { trip }: { trip: Trip } = $props();
-  let importOpen = $state(false);
 
   const sizes = $derived(enabledDesc(trip.sizes));
   const sub = $derived(aggregate(trip.items.map((it) => ({ it, sizes: trip.sizes }))));
@@ -166,7 +164,6 @@
       <input class="sec-name" placeholder="Trip name" spellcheck="false"
         value={trip.name} oninput={(e) => run.renameTrip(trip.id, e.currentTarget.value)} />
       <span class="sec-sub">{sub.scu.toLocaleString()} SCU · {sub.crates} crate{sub.crates === 1 ? '' : 's'}</span>
-      <button class="btn ghost sm" title="Import a mission from a screenshot" onclick={() => (importOpen = true)}>⎙ Import mission screenshot</button>
       <button class="sec-del" title="Remove trip" onclick={removeTrip}>✕</button>
     </div>
 
@@ -246,7 +243,3 @@
     </div>
   </div>
 </div>
-
-{#if importOpen}
-  <MissionImport tripId={trip.id} onClose={() => (importOpen = false)} />
-{/if}
