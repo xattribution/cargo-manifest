@@ -13,6 +13,7 @@ export interface MissionRollup {
   dests: number; // distinct dropoff locations
   items: number;
   done: number; // delivered lines
+  doneScu: number; // delivered SCU (lines marked done)
 }
 
 // `order` is the user's display order from state.missionOrder. Missions with items always
@@ -40,7 +41,9 @@ export function missionRollups(sections: Trip[], order: number[] = []): MissionR
   const build = (mission: number): MissionRollup => {
     const b = byMission.get(mission)!;
     const agg = aggregate(b.entries);
-    return { mission, agg, maxSize: maxCrateSize(agg.totals), sources: b.src.size, dests: b.dst.size, items: b.entries.length, done: b.entries.filter((e) => e.it.done).length };
+    const doneEntries = b.entries.filter((e) => e.it.done);
+    const doneScu = doneEntries.reduce((a, e) => a + Math.max(0, Math.floor(Number(e.it.scu) || 0)), 0);
+    return { mission, agg, maxSize: maxCrateSize(agg.totals), sources: b.src.size, dests: b.dst.size, items: b.entries.length, done: doneEntries.length, doneScu };
   };
   // ordered first (in the user's order), then any remaining missions ascending
   const seen = new Set<number>();

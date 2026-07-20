@@ -6,7 +6,7 @@
   import { toCSV } from './lib/csv';
   import { FILES, namesOf } from './lib/catalog';
   import { datalistNames } from './lib/format';
-  import { aggregate, flatEntries } from './lib/crate';
+  import { aggregate, flatEntries, deliveredScu } from './lib/crate';
   import { theme } from './lib/theme.svelte';
   import { prefs } from './lib/prefs.svelte';
   import type { Cat } from './lib/types';
@@ -42,6 +42,17 @@
   const locationList = $derived(datalistNames(namesOf(catalog.locations), run.state.sections.flatMap((s) => s.items.flatMap((i) => [i.source, i.destination]))));
   const shipList = $derived(namesOf(catalog.ships));
   const agg = $derived(aggregate(flatEntries(run.state.sections)));
+  const delivered = $derived(deliveredScu(run.state.sections));
+
+  // Auto-dismiss the undo toast after a while (the snapshot is one-level anyway).
+  let undoTimer: ReturnType<typeof setTimeout>;
+  $effect(() => {
+    if (run.undoInfo) {
+      clearTimeout(undoTimer);
+      undoTimer = setTimeout(() => run.dismissUndo(), 10000);
+    }
+    return () => clearTimeout(undoTimer);
+  });
 
   function download(filename: string, text: string, type: string) {
     const blob = new Blob([text], { type });
@@ -94,6 +105,12 @@
         <span><b>{agg.crates}</b> crates</span>
         {#if agg.leftover > 0}<span class="warn"><b>{agg.leftover}</b> unpacked</span>{/if}
       </div>
+      {#if delivered > 0 && agg.scu > 0}
+        <div class="run-prog" title="{delivered.toLocaleString()} of {agg.scu.toLocaleString()} SCU delivered">
+          <div class="run-prog-bar"><span style="width:{Math.min(100, (delivered / agg.scu) * 100)}%"></span></div>
+          <span class="run-prog-t">{delivered.toLocaleString()}/{agg.scu.toLocaleString()}</span>
+        </div>
+      {/if}
     </div>
 
     <Fleet {openGrid} />
@@ -155,6 +172,14 @@
   </main>
 </div>
 
+{#if run.undoInfo}
+  <div class="undo-toast" role="status">
+    <span class="undo-msg">{run.undoInfo.label}</span>
+    <button class="btn sm undo-btn" onclick={() => run.undoRestore()}>Undo</button>
+    <button class="undo-x" title="Dismiss" aria-label="Dismiss" onclick={() => run.dismissUndo()}>✕</button>
+  </div>
+{/if}
+
 {#if gridOpen}
   <ShipGridEditor initialName={gridShip} onClose={() => (gridOpen = false)} />
 {/if}
@@ -167,7 +192,7 @@
       <li><b>Fleet</b> (left): add ships you own; the smallest that fits the load is starred. Click a ship to set its <b>cargo grid</b> (max box size + realistic SCU).</li>
       <li><b>Missions</b> (Overview): per-mission totals; assign a hull to each mission to split a run across ships.</li>
       <li><b>Pick Up / Drop Off</b>: tick Drop Off when delivered; tick Pick Up just to mark cargo collected.</li>
-      <li><b>Fast entry</b>: Tab moves by the <b>Tab ↓/→</b> direction (Enter always goes down); hold <b>Ctrl</b> + an arrow key to move any direction for one cell. The chips beside a trip fill the focused cell.</li>
+      <li><b>Fast entry</b>: Tab moves by the <b>Tab ↓/→</b> direction (Enter always goes down); hold <b>Ctrl</b> + an arrow key to move any direction for one cell. The quick-fill list beside a trip fills the focused cell.</li>
       <li><b>Import from screenshot</b>: on a trip, click <b>⎙ Import</b> and paste/drop a screenshot of the mission’s <b>Primary Objectives</b> panel. It reads the text in your browser (never uploaded), matches commodities/locations to your catalog, and you review before it adds the rows.</li>
     </ol>
     <p class="muted">Everything saves in your browser — nothing is sent to a server. Use ⚙ to export/import a run or the catalog CSVs.</p>

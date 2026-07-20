@@ -9,6 +9,51 @@ chronological record of what changed and the reasoning behind each call.
 
 ---
 
+## v0.20 — review pass: de-pill restyle, delivery progress, ¤/SCU, undo, import fix
+
+**Restyle (user direction: no pills / no same-color blobs):**
+- **Chip rows are gone.** Crate breakdowns everywhere are now a single ledger-style mono
+  line (`2×32 · 1×16`): Overview strip (`sizeLine()` replaces the per-size chips),
+  Pick Up / Drop Off cards (`.gsizes` replaces `.gpills`/`.pill`, and now includes the
+  crate count), quick-fill rail entries are a plain ruled list (no boxed chips), the
+  fleet count and importer suggestion count are plain text, the drop-off optimizer note
+  is a green left-bar line (no filled box), and the `◎ pct% route` header readout lost
+  its background bubble. The mission color marker on card lines is a strict 16px square
+  color-code cell. `format.ts` lost `pillList`/`pillClass`, gained `sizeLine`.
+- **Overview stats merged into one ruled ledger strip** (stats divided by hairlines inside
+  a single bordered container) instead of separate floating tiles.
+- **Section palette de-blobbed**: Pick Up was a second near-identical blue; it is now
+  violet (`--c-pickup` light `#5d5180` / dark `#4c4169`) so the four zones read
+  blue / olive / violet / rust at a glance.
+- Fit badges use the mono font, uppercase. Dead placeholder CSS selector removed.
+
+**New functionality:**
+- **Delivery progress**: sidebar gets a delivered/total SCU meter (appears once anything
+  is checked off); Overview gets a green **Delivered** stat; the Missions table gets a
+  **Done** column (delivered SCU, ✓ when complete; footer totals it); Copy Summary
+  includes a `Delivered: X/Y SCU` line. New `crate.ts → deliveredScu()`,
+  `missionRollups` gains `doneScu`.
+- **¤/SCU value density**: the Missions footer shows the average reward-per-SCU next to
+  the total; each reward input's tooltip shows that mission's rate.
+- **One-level undo** for destructive ops: deleting a mission, clearing all missions, and
+  removing a non-empty trip snapshot the run first and raise a bottom toast
+  ("Mission 3 deleted — Undo", auto-dismisses after 10s). Transient, not persisted.
+  `run.undoInfo` / `undoRestore()` / `dismissUndo()`.
+
+**Fixes:**
+- **Importer mission numbering is now global**: `addImportedLegs` previously only
+  considered mission #s used on the target trip, so importing could silently reuse a
+  number active on another trip and merge colors/reward/metadata. It now picks the
+  lowest number free across every trip + `missionOrder`.
+- Undefined CSS tokens fixed (`--txt-faint` → `--ink-faint`, `--amber-soft` → `--amber`);
+  undefined `btn warn` → `btn danger` (ship grid editor).
+- Missions empty-state `colspan` corrected (was one column short).
+- Mission-# input now reflects the 1–10 clamp immediately (typing "15" shows 10).
+- Quick-fill clipboard write no longer leaves an unhandled promise rejection.
+- `+ Add Trip` picks the first unused letter (removals no longer cause duplicate names).
+
+---
+
 ## v0.19 — collapsible sidebar + mission delete UX
 
 - **Desktop sidebar collapse**: `«` in the sidebar brand tucks it away (workspace goes

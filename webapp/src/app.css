@@ -11,8 +11,9 @@
   --sidebar-w:280px;
   /* signal accents (matte; shared across themes) */
   --cyan:#3f6f93; --green:#5d8a4a; --amber:#bf842a; --red:#bb4a3a; --violet:#6f5b9a; --orange:#c2702f; --steel:#4a6885;
-  /* section header fills (solid, matte) */
-  --c-overview:#3a647f; --c-manifest:#566641; --c-pickup:#456079; --c-dropoff:#8f5d33;
+  /* section header fills (solid, matte) — four DISTINCT hues: blue / olive / violet / rust
+     (pickup was a second near-identical blue; violet keeps every section instantly tellable) */
+  --c-overview:#3a647f; --c-manifest:#566641; --c-pickup:#5d5180; --c-dropoff:#8f5d33;
   /* completed-row wash (greenish-grey) */
   --done-wash:rgba(93,138,74,.16); --done-ink:#5f7355;
 }
@@ -33,7 +34,7 @@
   --rule:#2c343d; --rule-soft:#222a32;
   --side:#0c0f13; --side2:#161b21; --side-line:#2a323b; --side-ink:#c9d2da; --side-dim:#8492a0; --side-faint:#5e6b78;
   --th-bg:#232b34;
-  --c-overview:#34566c; --c-manifest:#48553a; --c-pickup:#3c5066; --c-dropoff:#7a4f2d;
+  --c-overview:#34566c; --c-manifest:#48553a; --c-pickup:#4c4169; --c-dropoff:#7a4f2d;
   --done-wash:rgba(93,138,74,.2); --done-ink:#8aa178;
 }
 *{box-sizing:border-box}
@@ -77,7 +78,8 @@ input{font-family:var(--body)}
 .fleet.collapsed .fleet-hd{padding-bottom:2px}
 .fleet.collapsed .caret{transform:rotate(-90deg)}
 .fleet-title{font-family:var(--display);font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--side-dim)}
-.fleet-count{font-family:var(--mono);font-size:10px;color:var(--side-faint);border:1px solid var(--side-line);padding:0 5px;line-height:15px}
+.fleet-count{font-family:var(--mono);font-size:11px;color:var(--side-faint)}
+.fleet-count::before{content:"· "}
 .fleet-tgt{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--amber)}
 .fleet-hd:hover .fleet-title{color:var(--side-ink)}
 .fitseg{display:flex;border:1px solid var(--side-line);margin-bottom:10px}
@@ -129,6 +131,11 @@ input{font-family:var(--body)}
 .run-strip .run-stat{display:flex;gap:14px;margin-top:5px;font-family:var(--mono);font-size:12px;color:var(--side-dim)}
 .run-strip .run-stat b{color:var(--side-ink);font-size:13px}
 .run-strip .run-stat .warn,.run-strip .run-stat .warn b{color:var(--amber)}
+/* delivered-progress meter (shows once anything is checked off) */
+.run-prog{display:flex;align-items:center;gap:8px;margin-top:7px}
+.run-prog-bar{flex:1;height:5px;background:#10141a;border:1px solid var(--side-line)}
+.run-prog-bar span{display:block;height:100%;background:var(--green)}
+.run-prog-t{font-family:var(--mono);font-size:10.5px;color:var(--side-dim);white-space:nowrap}
 
 /* ---- Zones (sections) ---- */
 .zone{margin-bottom:18px;border:1px solid var(--rule);background:var(--card)}
@@ -153,17 +160,18 @@ input{font-family:var(--body)}
 .zone-head .btn.ghost{border-color:rgba(255,255,255,.45);color:#fff}
 .zone-head .btn.ghost:hover{background:rgba(255,255,255,.15)}
 
-/* ---- Overview ---- */
-.ov-stats{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.ov-stats .stat{background:var(--paper2);border:1px solid var(--rule);border-top:2px solid var(--steel);padding:7px 14px;min-width:84px}
+/* ---- Overview ----
+   One ruled ledger strip (stats divided by hairlines) instead of separate floating tiles;
+   the crate breakdown is a plain mono line, not a chip row. */
+.ov-stats{display:flex;align-items:stretch;flex-wrap:wrap;margin-bottom:14px;background:var(--paper2);border:1px solid var(--rule);border-top:2px solid var(--steel)}
+.ov-stats .stat{padding:7px 16px 6px;min-width:84px;border-right:1px solid var(--rule-soft)}
 .ov-stats .stat .v{font-family:var(--mono);font-size:22px;color:var(--ink);line-height:1.05;font-weight:600}
 .ov-stats .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-dim)}
-.ov-stats .s-cargo{border-top-color:var(--cyan)} .ov-stats .s-cargo .v{color:var(--cyan)}
-.ov-sizes{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto}
-.ov-sizes .sz{font-family:var(--mono);font-size:12px;color:var(--ink-dim);border:1px solid var(--rule);padding:3px 7px;background:var(--paper2)}
-.ov-sizes .sz b{color:var(--ink)}
-.ov-sizes .sz.warn{color:var(--red);border-color:var(--red)}
-.ov-sizes .copy{margin-left:4px}
+.ov-stats .s-cargo .v{color:var(--cyan)}
+.ov-stats .s-done .v{color:var(--green)}
+.ov-sizes{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto;padding:7px 12px}
+.sz-line{font-family:var(--mono);font-size:13px;color:var(--ink);white-space:nowrap}
+.sz-line.sz-warn{color:var(--red)}
 
 /* ---- Missions table ---- */
 .mp-empty{color:var(--ink-faint);font-size:13px;padding:8px 2px}
@@ -185,7 +193,8 @@ input{font-family:var(--body)}
 .mname-in:hover,.mship-in:hover{border-color:color-mix(in srgb, var(--mfg) 35%, transparent)}
 .mname-in:focus,.mship-in:focus{outline:none;border-color:var(--mfg);background:color-mix(in srgb, var(--mc) 78%, #000)}
 .mt-ship{min-width:130px}
-.badge{font-family:var(--display);font-size:11px;letter-spacing:.5px;padding:1px 6px;display:inline-block}
+/* fit stamps: square status marks (solid fill = signal color, mono, letterpress-tight) */
+.badge{font-family:var(--mono);font-size:11px;letter-spacing:.5px;padding:1px 6px;display:inline-block;text-transform:uppercase}
 .badge.ok{color:#fff;background:var(--green)}
 .badge.bad{color:#fff;background:var(--red)}
 .badge.warn{color:#fff;background:var(--amber)}
@@ -227,8 +236,9 @@ input{font-family:var(--body)}
 .ref-grp{display:flex;flex-direction:column;gap:3px}
 .ref-h{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-dim);margin-bottom:2px}
 .ref-tip{font-family:var(--mono);font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-faint);opacity:.85;margin-bottom:-2px}
-.ref-chip{text-align:left;background:var(--card);border:1px solid var(--rule);color:var(--ink);font-family:var(--body);font-size:12px;padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;letter-spacing:0}
-.ref-chip:hover{border-color:var(--cyan);color:var(--cyan);background:var(--card2)}
+/* quick-fill entries: a plain ruled list (no boxed chips) */
+.ref-chip{text-align:left;background:transparent;border:0;border-bottom:1px solid var(--rule-soft);color:var(--ink);font-family:var(--body);font-size:12px;padding:3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;letter-spacing:0}
+.ref-chip:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 @media(max-width:760px){ .trip-body{flex-direction:column;align-items:stretch} .ref-rail{flex-basis:auto;width:100%;flex-direction:row;flex-wrap:wrap} .ref-grp{flex-direction:row;flex-wrap:wrap;align-items:center} }
 .tbl th{position:relative}
 .tbl th.rcol{padding-right:14px}
@@ -288,7 +298,6 @@ tr.item-row.dragging{opacity:.45}
 .item-row.done.colored .szcell,.item-row.done.colored .ncount{color:var(--done-ink)}
 .item-row.done .field input[data-f="commodity"]{text-decoration:line-through}
 .tbl td:last-child,.tbl th:last-child{text-align:center;padding:0 2px}
-.crates-cell,.add-ship-row,.ship-tbl,.fit,.grid-chip,.cap-cell,.ship-actions,.fleet-top,.fit-target,.size-totals,.size-tot,.leftover-warn,.summary-grid,.stat .v small,.mini-note,.info-btn,.data-strip,.page-foot,.hdr-status,.icon-btn,.cog-btn,header.top,.manifest-name{}
 
 /* ---- Routes (Pick Up / Drop Off) ---- */
 .routes-zone{border:0;background:transparent;margin-bottom:18px}
@@ -311,15 +320,14 @@ tr.item-row.dragging{opacity:.45}
 .gname{flex:1;font-family:var(--display);font-size:13.5px;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .gcard.done .gname{text-decoration:line-through}
 .gscu{font-family:var(--mono);font-size:12px;color:var(--amber)}
-.gpills{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0 0 22px}
-.pill{font-family:var(--mono);font-size:11px;padding:1px 6px;background:var(--paper2);border:1px solid var(--rule);color:var(--ink-dim)}
-.pill .mult{color:var(--ink-faint)}
-.pill.leftover{border-color:var(--red);color:var(--red)}
-.gmeta{display:none}
+/* crate breakdown = one ledger line, not a chip row */
+.gsizes{margin:4px 0 0 22px;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim)}
+.gsizes .gs-warn{color:var(--red)}
 .gitems{margin:6px 0 0 22px;display:flex;flex-direction:column;gap:1px}
 .giline{display:flex;align-items:center;gap:6px;font-size:12px}
 .giline.gi-done{color:var(--done-ink)}.giline.gi-done .gi-name{text-decoration:line-through;color:var(--done-ink)}.giline.gi-done .gi-scu{color:var(--done-ink)}
-.mchip{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:16px;padding:0 4px;font-family:var(--display);font-weight:700;font-size:10px;flex:0 0 auto}
+/* mission color-code cell: a strict 16px square (registers as a table cell, not a pill) */
+.mchip{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;font-family:var(--display);font-weight:700;font-size:10px;flex:0 0 auto;letter-spacing:-.5px}
 .gi-name{color:var(--ink)}
 .gi-scu{font-family:var(--mono);font-size:11.5px;color:var(--amber)}
 .gi-other{color:var(--ink-faint);font-size:11px}
@@ -421,7 +429,7 @@ tr.item-row.dragging{opacity:.45}
 
 .imp-side{border:1px solid var(--amber);background:color-mix(in srgb,var(--amber) 8%,var(--card));padding:11px}
 .imp-side-h{font-family:var(--display);font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--ink);display:flex;align-items:center;gap:7px;margin-bottom:4px}
-.imp-side-n{font-family:var(--mono);font-size:11px;background:var(--amber);color:#fff;padding:0 6px;line-height:16px}
+.imp-side-n{font-family:var(--mono);font-size:12px;color:var(--amber);font-weight:700}
 .imp-side-s{font-size:11.5px;color:var(--ink-dim);margin:0 0 10px;line-height:1.45}
 .sugg{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-top:1px solid var(--rule-soft)}
 .sugg-kind{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--ink-faint)}
@@ -476,13 +484,30 @@ tr.item-row.dragging{opacity:.45}
 .m-pct-note b{color:var(--ink)}
 
 /* ---- drop-off route optimizer (partial-completion %) ---- */
-.route-opt{margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.3px;color:#fff;background:rgba(0,0,0,.22);padding:2px 8px;white-space:nowrap}
+.route-opt{margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.3px;color:rgba(255,255,255,.92);white-space:nowrap}
 .gcard.opt-dim{opacity:.4;filter:grayscale(.5)}
 .gcard.on-route{box-shadow:inset 3px 0 0 var(--accent), 0 0 0 1px var(--green)}
 .gcard.opt-best{box-shadow:inset 3px 0 0 var(--accent), 0 0 0 2px var(--green);background:color-mix(in srgb,var(--green) 9%,var(--card))}
 .opt-star{color:var(--green);margin-right:4px}
-.opt-deliver{font-family:var(--mono);font-size:11.5px;color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent);border:1px solid color-mix(in srgb,var(--green) 35%,var(--rule));padding:3px 8px;margin:6px 0 0 22px;display:inline-block}
+.opt-deliver{font-family:var(--mono);font-size:11.5px;color:var(--green);border-left:3px solid var(--green);padding:1px 0 1px 8px;margin:6px 0 0 22px;display:block}
 .opt-deliver b{color:var(--ink)}
+
+/* Missions table: delivered column + reward-rate readout */
+.mtbl .mt-done{color:var(--ink-dim)}
+.mtbl tr.mrow .mt-done{color:var(--mfg)}
+.mtbl .mt-done.all-done{color:var(--green);font-weight:700}
+.mtbl tr.mrow .mt-done.all-done{color:var(--mfg)}
+.rew-rate{font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-left:8px;font-weight:400}
+
+/* undo toast (one-level undo for mission/trip deletions) */
+.undo-toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:220;display:flex;align-items:center;gap:12px;
+  background:var(--side2);border:1px solid var(--side-line);border-left:3px solid var(--amber);color:var(--side-ink);
+  padding:9px 10px 9px 14px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.undo-msg{font-family:var(--body)}
+.undo-btn{background:transparent;border-color:var(--side-line);color:var(--amber)}
+.undo-btn:hover{border-color:var(--amber);color:var(--amber)}
+.undo-x{background:transparent;border:0;color:var(--side-faint);font-size:12px;padding:2px 4px}
+.undo-x:hover{color:var(--side-ink)}
 
 /* mission delete confirm dialog */
 .cd-msg{font-size:13.5px;color:var(--ink);line-height:1.55;margin:0 0 12px}

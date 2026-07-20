@@ -29,7 +29,7 @@
       const it = trip.items.find((x) => x.id === id);
       if (it && f && f in it) { (it as any)[f] = val; inp.value = val; inp.dispatchEvent(new Event('input', { bubbles: true })); }
     }
-    try { navigator.clipboard?.writeText(val); } catch { /* ignore */ }
+    navigator.clipboard?.writeText(val).catch(() => { /* clipboard unavailable */ });
   }
 
   // Directional Tab / Enter navigation across the editable grid.

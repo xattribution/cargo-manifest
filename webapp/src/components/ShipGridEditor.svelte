@@ -58,7 +58,7 @@
   <label class="modal-label" for="ge-ship">Ship</label>
   <input id="ge-ship" class="modal-input" list="shipList" bind:value={sel} onchange={() => loadFrom(sel)} spellcheck="false" placeholder="type a ship name…" />
   <div class="ge-scu">
-    {#if selRow}Nominal capacity: <b>{nominalScu?.toLocaleString()} SCU</b>{:else}<span style="color:var(--amber-soft)">Not in catalog yet — saving will create a grid entry for it.</span>{/if}
+    {#if selRow}Nominal capacity: <b>{nominalScu?.toLocaleString()} SCU</b>{:else}<span style="color:var(--amber)">Not in catalog yet — saving will create a grid entry for it.</span>{/if}
   </div>
 
   <label class="modal-label" style="margin-top:14px" for="ge-max">Max container size</label>
@@ -82,7 +82,7 @@
   </div>
 
   <div class="modal-actions">
-    <button class="btn warn" onclick={clearGrid}>Clear grid</button>
+    <button class="btn danger" onclick={clearGrid}>Clear grid</button>
     <button class="btn" onclick={onClose}>Cancel</button>
     <button class="btn accent" onclick={save}>Save grid</button>
   </div>

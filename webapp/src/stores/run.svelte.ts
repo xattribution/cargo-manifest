@@ -86,8 +86,26 @@ function createRun() {
   let state = $state<RunState>(init);
   const byId = (id: string) => state.sections.find((s) => s.id === id);
 
+  // One-level undo for destructive operations (mission delete, clear-all, trip removal).
+  // Transient — not persisted; the snapshot is the full pre-operation RunState.
+  let undoState = $state<{ label: string; snap: RunState } | null>(null);
+  const snapshotUndo = (label: string) => { undoState = { label, snap: $state.snapshot(state) as RunState }; };
+
+  // Mission #s are a GLOBAL identity (1–10) across every trip — color, metadata, and the
+  // Missions register all key on them. Collect every number in use anywhere.
+  const missionsInUse = (): Set<number> => {
+    const used = new Set<number>();
+    for (const sec of state.sections) for (const it of sec.items) used.add(Math.max(1, Math.min(10, Number(it.mission) || 1)));
+    for (const n of state.missionOrder) used.add(n);
+    return used;
+  };
+
   return {
     get state() { return state; },
+
+    get undoInfo() { return undoState; },
+    undoRestore() { if (undoState) { state = undoState.snap; undoState = null; } },
+    dismissUndo() { undoState = null; },
 
     setName(n: string) { state.name = n; },
     setFitMode(m: 'mission' | 'largest' | 'combined') { state.fitMode = m; },
@@ -106,9 +124,7 @@ function createRun() {
     // ---- mission management (the Missions panel) ----
     // Add a new empty mission: pick the lowest unused 1–10 number and pin it to the order.
     addMission(): number | null {
-      const inUse = new Set<number>();
-      for (const sec of state.sections) for (const it of sec.items) inUse.add(Math.max(1, Math.min(10, Number(it.mission) || 1)));
-      for (const n of state.missionOrder) inUse.add(n);
+      const inUse = missionsInUse();
       let m = 0;
       for (let n = 1; n <= 10; n++) if (!inUse.has(n)) { m = n; break; }
       if (!m) return null; // all 10 in use
@@ -117,6 +133,7 @@ function createRun() {
     },
     // Delete a mission: remove its manifest items and all its metadata.
     deleteMission(mission: number) {
+      snapshotUndo(`${state.missionNames[mission] || `Mission ${mission}`} deleted`);
       for (const sec of state.sections) sec.items = sec.items.filter((it) => (Number(it.mission) || 1) !== mission);
       delete state.missionShips[mission];
       delete state.missionNames[mission];
@@ -125,6 +142,7 @@ function createRun() {
     },
     // Clear ALL missions: wipe every cargo line + all mission metadata (keeps empty trips).
     clearMissions() {
+      snapshotUndo('All missions cleared');
       for (const sec of state.sections) sec.items = [];
       state.missionShips = {};
       state.missionNames = {};
@@ -163,11 +181,16 @@ function createRun() {
     },
 
     addTrip() {
-      const letter = String.fromCharCode(65 + state.sections.length);
-      state.sections.push(freshTrip('Trip ' + letter));
+      // First letter not already used as a "Trip X" name (removals can leave gaps).
+      const names = new Set(state.sections.map((s) => s.name));
+      let letter = '';
+      for (let i = 0; i < 26; i++) { const l = String.fromCharCode(65 + i); if (!names.has('Trip ' + l)) { letter = l; break; } }
+      state.sections.push(freshTrip('Trip ' + (letter || String(state.sections.length + 1))));
     },
     removeTrip(id: string): boolean {
       if (state.sections.length === 1) return false;
+      const t = byId(id);
+      if (t && t.items.length) snapshotUndo(`${t.name || 'Trip'} removed`);
       state.sections = state.sections.filter((s) => s.id !== id);
       return true;
     },
@@ -192,9 +215,11 @@ function createRun() {
     ) {
       const t = byId(tid);
       if (!t || !legs.length) return;
-      const used = new Set(t.items.map((i) => i.mission));
-      let mission = 1;
-      while (used.has(mission) && mission < 10) mission++;
+      // Mission #s are global across trips — take the lowest free one so an import never
+      // collides with (and inherits the color/metadata of) a mission on another trip.
+      const used = missionsInUse();
+      let mission = 10;
+      for (let n = 1; n <= 10; n++) if (!used.has(n)) { mission = n; break; }
       for (const lg of legs) {
         t.items.push({ id: nid(), commodity: lg.commodity, scu: lg.scu === 0 ? '0' : String(lg.scu), source: lg.source, destination: lg.destination, mission, done: false, pickedUp: false });
       }
