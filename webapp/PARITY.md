@@ -9,6 +9,63 @@ chronological record of what changed and the reasoning behind each call.
 
 ---
 
+## v0.21 — OCR importer accuracy pass (driven by real contract screenshots)
+
+Reviewed against five real "Senior Rank — Medium Cargo Haul" Covalex screenshots; all are
+transcribed into a new regression suite (see below) and an end-to-end harness runs the real
+Tesseract pipeline on a synthetic render of the same layout.
+
+**Catalog data (the biggest accuracy win):**
+- The Stanton **Lagrange stations were catalogued as bare codes** (`CRU-L4`, `HUR-L5`, …)
+  while contracts use full names ("CRU-L4 Shallow Fields Station"). Worse, full names only
+  existed inside store rows, so "Collect from CRU-L1 Ambitious Dream Station" matched
+  **"Live Fire Weapons (CRU-L1 Ambitious Dream Station)"** — a gun shop — and Lagrange
+  names without a code ("Beautiful Glen Station") matched nothing. All 18 Stanton Lagrange
+  rows now carry their full in-game names (same convention the store rows already used);
+  `Seraphim` → `Seraphim Station` (+ System/Planet filled). Removed a committed OCR-typo
+  duplicate (`ARC-LS Yellow Core Station`) and the `INS-Jericho`/`INS Jericho` dupe.
+
+**Matcher (`match.ts`):**
+- Scores are **no longer clamped to 1.0 before comparison** — a padded sub-location
+  ("Refinery deck store (X Station)") could previously saturate and tie the station itself,
+  leaving the winner to alphabetical accident.
+- **Possessive fragments dropped**: "Crusader's" tokenized into a stray `s` that polluted
+  the Dice overlap; single-character tokens are now filtered.
+- **Code-mismatch penalty softened when words carry the match**: "CRU-LA Shallow Fields
+  Station" (OCR-garbled 4→A) now resolves to CRU-L4 because ≥2 distinctive non-code tokens
+  match exactly. Bare garbled codes with no supporting words (ARC-LS alone vs ARC-L4/L5)
+  still flag novel — the safety property is unchanged.
+
+**Parser (`parseMission.ts`):**
+- `Deliver O/62` (zero read as the letter O) and `0/14I` (letter confusions inside the SCU
+  number) now parse — captured **number** tokens run through a letter→digit fixer
+  (O→0, I/l→1, S→5, B→8, Z→2); never applied to names. Reward numbers get the same
+  treatment (previously `3l8,250` silently parsed as 8,250).
+- **Bullet-glyph junk stripped** from captured fields (`◇` commonly OCRs as `©`/`®`/`•`;
+  it rode into a source name whenever a trailing period was dropped).
+- **`deconflict` no longer lets a short pass shift the vote**: only passes with the same
+  leg count as the anchor vote per-field (a pass that dropped a middle leg had every later
+  leg misaligned, and two such passes could outvote the one complete pass). `reward`/
+  `maxBox` now vote by majority instead of first-non-null (a bad first pass with a dropped
+  digit used to win).
+- **Default crop is now full-height** (`y:0–1`, right 55%): the Reward readout sits in the
+  top-right header, which the old `y:0.06` start could clip — reward now auto-fills with
+  the default box.
+- `vite.config.ts`: `optimizeDeps` **include** (was exclude) `tesseract.js` — the CJS
+  module must be pre-bundled in dev or the dynamic import throws `require is not defined`
+  (production build was always fine; worker/core stay vendored in `public/ocr`).
+
+**Tests (new, first in the repo):**
+- `npm run test:parser` — `test/parser-tests.mjs`, 35 assertions: the five transcribed
+  screenshots (legs/SCU/sources/destinations/reward/box limits), OCR-noise variants, the
+  deconflict alignment + majority cases, and matcher resolution of every location/commodity
+  in the shots against the real CSVs. Plain Node (`--experimental-strip-types`), no deps.
+- `test/ocr-harness.html` + `test/ocr-e2e.mjs` — dev-only end-to-end: renders a synthetic
+  two-column contract (SC-style layout), applies the default crop, runs the real 3-pass
+  Tesseract → parse → deconflict → match pipeline headless. Verified passing.
+
+---
+
 ## v0.20 — review pass: de-pill restyle, delivery progress, ¤/SCU, undo, import fix
 
 **Restyle (user direction: no pills / no same-color blobs):**

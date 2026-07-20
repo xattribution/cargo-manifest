@@ -31,8 +31,12 @@ function tokens(s: string): string[] {
   return norm(s).split(' ').filter(Boolean);
 }
 function meaningful(toks: string[]): string[] {
-  const m = toks.filter((t) => !STOP.has(t));
-  return m.length ? m : toks; // never reduce to nothing
+  // Drop stop-words AND single-character fragments (possessives like "Crusader's" tokenize
+  // to a stray "s" that would pollute the Dice overlap).
+  const m = toks.filter((t) => !STOP.has(t) && t.length > 1);
+  if (m.length) return m;
+  const noStop = toks.filter((t) => !STOP.has(t));
+  return noStop.length ? noStop : toks; // never reduce to nothing
 }
 // alphanumeric identifier tokens like "s1dc06", "hur-l5", "2ub-rb9-5", "st1-61"
 function isCode(t: string): boolean {
@@ -84,14 +88,26 @@ function score(qToks: string[], cToks: string[]): number {
   const cCodes = cArr.filter(isCode);
   if (qCodes.length) {
     const hit = qCodes.some((x) => cCodes.some((y) => codesEqual(x, y)));
-    s += hit ? 0.35 : -0.25;
+    if (hit) s += 0.35;
+    else {
+      // Mismatched code: normally a strong negative (ARC-L4 ≠ ARC-L5). But when the query
+      // also carries ≥2 distinctive NON-code tokens that are ALL contained in the candidate
+      // ("CRU-LA Shallow Fields Station" → "CRU-L4 Shallow Fields Station"), the words
+      // uniquely identify the place and the code was just OCR-garbled — soften the penalty.
+      const qNon = [...q].filter((t) => !isCode(t));
+      const wordsCarry = qNon.length >= 2 && qNon.every((t) => c.has(t));
+      s -= wordsCarry ? 0.08 : 0.25;
+    }
   }
 
   // tightness: prefer candidates that aren't padded with extra tokens (station > shop-in-station)
   const extra = [...c].filter((t) => !q.has(t)).length;
   s -= Math.min(0.2, extra * 0.04);
 
-  return Math.max(0, Math.min(1, s));
+  // NOTE: deliberately NOT clamped to [0,1] here — comparison must stay unclamped so a
+  // saturating sub-location ("Refinery deck store (X Station)") can never tie the station
+  // itself. matchName clamps the reported confidence at the end.
+  return Math.max(0, s);
 }
 
 export interface Candidate { name: string; }
@@ -107,7 +123,7 @@ export function matchName(query: string, names: string[], threshold = 0.45): Mat
     const sc = score(qToks, tokens(name));
     if (sc > bestScore) { bestScore = sc; best = name; }
   }
-  if (bestScore >= threshold) return { value: best, score: bestScore, novel: false };
+  if (bestScore >= threshold) return { value: best, score: Math.min(1, bestScore), novel: false };
   // nothing matched well — treat as a new entry the user can add
-  return { value: q, score: bestScore, novel: true };
+  return { value: q, score: Math.min(1, bestScore), novel: true };
 }

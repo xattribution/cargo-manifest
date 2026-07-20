@@ -1,0 +1,125 @@
+<!doctype html>
+<!-- Dev-only OCR end-to-end harness. Served by `npm run dev` at /test/ocr-harness.html
+     (NOT part of the production build — vite only builds index.html).
+     Renders a synthetic two-column contract screenshot in the style of the SC mission UI,
+     applies the importer's default crop, then runs the REAL pipeline: ocrMulti (3-pass
+     Tesseract on vendored assets) -> parseMission -> deconflict -> matchName.
+     Drive it with test/ocr-e2e.mjs, or open it in a browser and click Run. -->
+<html>
+<head><meta charset="utf-8"><title>OCR e2e harness</title></head>
+<body style="background:#111;color:#ddd;font-family:monospace">
+<button id="go">Run</button>
+<canvas id="cv" width="2000" height="1150" style="max-width:100%;display:block;border:1px solid #444"></canvas>
+<pre id="out"></pre>
+<script type="module">
+import { ocrMulti } from '/src/lib/ocr';
+import { parseMission, deconflict } from '/src/lib/parseMission';
+import { matchName } from '/src/lib/match';
+import { parseCSV } from '/src/lib/csv';
+
+// Synthetic contract in the layout of the real screenshots (details left, objectives right,
+// reward top-right). Content mirrors the "shot 4" style: mixed commodities + Lagrange names.
+const OBJECTIVES = [
+  ['Deliver 0/62 SCU of Quantum Fuel to Beautiful Glen', 'Station at Crusader’s L5 Lagrange point.', '  Collect Quantum Fuel from Seraphim Station.'],
+  ['Deliver 0/136 SCU of Hydrogen Fuel to Ambitious Dream', 'Station at Crusader’s L1 Lagrange point.', '  Collect Hydrogen Fuel from Seraphim Station.'],
+  ['Deliver 0/141 SCU of Ship Ammunition to Shallow Fields', 'Station at Crusader’s L4 Lagrange point.', '  Collect Ship Ammunition from Seraphim Station.'],
+  ['Deliver 0/60 SCU of Hydrogen Fuel to Beautiful Glen', 'Station at Crusader’s L5 Lagrange point.', '  Collect Hydrogen Fuel from Seraphim Station.'],
+];
+const EXPECT = {
+  reward: 296250,
+  legs: [
+    ['Quantum Fuel', 62, 'Seraphim Station', 'CRU-L5 Beautiful Glen Station'],
+    ['Hydrogen Fuel', 136, 'Seraphim Station', 'CRU-L1 Ambitious Dream Station'],
+    ['Ship Ammunition', 141, 'Seraphim Station', 'CRU-L4 Shallow Fields Station'],
+    ['Hydrogen Fuel', 60, 'Seraphim Station', 'CRU-L5 Beautiful Glen Station'],
+  ],
+};
+
+function drawContract(cv) {
+  const x = cv.getContext('2d');
+  x.fillStyle = '#0d1319'; x.fillRect(0, 0, cv.width, cv.height);
+  x.fillStyle = '#e8eef4'; x.font = '600 44px Arial';
+  x.fillText('Senior Rank - Medium Cargo Haul [BP]*', 40, 90);
+  // header (top right): reward
+  x.font = '32px Arial'; x.fillStyle = '#7fb0d8';
+  x.fillText('Reward', 1170, 60); x.fillText('Contract Deadline', 1170, 105);
+  x.fillStyle = '#e8eef4'; x.textAlign = 'right';
+  x.fillText('¤ 296,250', 1950, 60); x.fillText('N/A', 1950, 105);
+  x.textAlign = 'left';
+  // left column: details flavor text (must NOT bleed into parsed fields)
+  x.fillStyle = '#cfd8e0'; x.font = 'bold 34px Arial';
+  x.fillText('DETAILS', 40, 210);
+  x.font = '26px Arial'; x.fillStyle = '#aeb9c4';
+  const details = [
+    'Hey,', '',
+    'The folks at Seraphim Station above Crusader have',
+    'what I like to call a “pilot’s special” waiting to be',
+    'distributed - a haul of quantum fuel, hydrogen fuel,',
+    'and ship ammo. Load it up from a freight elevator',
+    'and deliver it to the following spots in whatever',
+    'order works best for you. Expect the containers to',
+    'all be 16 SCU or smaller.', '',
+    'DROP OFF LOCATIONS (ANY ORDER)', '',
+    '- Freight elevator at Beautiful Glen Station',
+    '- Freight elevator at Ambitious Dream Station',
+    '- Freight elevator at Shallow Fields Station', '',
+    'Thanks in advance for ensuring prompt service,', '',
+    'Chase Hewitt', 'Jr. Logistics Coordinator', 'Covalex Shipping',
+  ];
+  details.forEach((l, i) => x.fillText(l, 40, 260 + i * 38));
+  // right column: primary objectives
+  x.fillStyle = '#cfd8e0'; x.font = 'bold 34px Arial';
+  x.fillText('PRIMARY OBJECTIVES', 1060, 210);
+  x.font = 'bold 28px Arial';
+  let y = 280;
+  for (const group of OBJECTIVES) {
+    group.forEach((line, i) => {
+      x.fillStyle = i === 2 ? '#bcd0df' : '#e8eef4';
+      x.font = i === 2 ? '26px Arial' : 'bold 28px Arial';
+      x.fillText((i === 0 ? '◇ ' : '   ') + line, 1060, y);
+      y += 42;
+    });
+    y += 26;
+  }
+}
+
+async function run() {
+  const cv = document.getElementById('cv');
+  drawContract(cv);
+  // importer default crop: right 55%, full height
+  const sel = { x: 0.45, y: 0, w: 0.55, h: 1 };
+  const c2 = document.createElement('canvas');
+  c2.width = Math.round(cv.width * sel.w); c2.height = Math.round(cv.height * sel.h);
+  c2.getContext('2d').drawImage(cv, cv.width * sel.x, cv.height * sel.y, c2.width, c2.height, 0, 0, c2.width, c2.height);
+  const blob = await new Promise((r) => c2.toBlob(r, 'image/png'));
+
+  const passes = await ocrMulti(blob, 3, () => {});
+  const merged = deconflict(passes.map((p) => parseMission(p.text)));
+
+  const locCsv = parseCSV(await (await fetch('/data/locations.csv')).text());
+  const comCsv = parseCSV(await (await fetch('/data/commodities.csv')).text());
+  const locNames = locCsv.rows.map((r) => r.Name).filter(Boolean);
+  const comNames = comCsv.rows.map((r) => r.Name).filter(Boolean);
+
+  const legs = merged.legs.map((l) => [
+    matchName(l.commodity, comNames).value,
+    l.scu,
+    l.source ? matchName(l.source, locNames).value : '',
+    matchName(l.destination, locNames).value,
+  ]);
+  const result = {
+    reward: merged.reward,
+    legs,
+    pass: JSON.stringify(legs) === JSON.stringify(EXPECT.legs) && merged.reward === EXPECT.reward,
+    expected: EXPECT.legs,
+    rawFirstPass: passes[0].text,
+  };
+  document.getElementById('out').textContent = JSON.stringify(result, null, 2);
+  return result;
+}
+
+window.__run = run;
+document.getElementById('go').onclick = run;
+</script>
+</body>
+</html>

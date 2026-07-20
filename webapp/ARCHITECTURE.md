@@ -303,19 +303,34 @@ Critical rules baked in (each fixes a real reported bug):
   Tesseract often reads it as `=`); falls back to `¤`/`aUEC` forms.
 
 `deconflict(missions[])` aligns legs across the 3 passes and **votes per field** (majority;
-ties → highest-confidence pass). SCU votes on the numeric value.
+ties → highest-confidence pass). SCU votes on the numeric value. Only passes with the
+**same leg count as the anchor** vote per-field — a pass that dropped a leg has every later
+leg shifted and would corrupt the vote (v0.21). `reward`/`maxBox` vote by majority too.
+Captured **numbers** (SCU, reward) run through a letter→digit fixer (`O/62` → `0/62`,
+`14I` → `141`) — applied to numbers only, never names. The default crop box is the right
+55% at **full height** so the top-right Reward header is included.
 
 ### Matching (`match.ts → matchName`)
 Token + code-aware fuzzy match against catalog names:
 - Token-overlap (Dice) + containment, so `"High Course Station"` matches
   `"HUR-L5 High Course Station"` and prefers the **tightest container** (the station, not
-  `"Platinum Bay (HUR-L5 High Course Station)"`).
+  `"Platinum Bay (HUR-L5 High Course Station)"`). Comparison scores are **unclamped** —
+  clamping to 1.0 before comparing once let padded sub-locations tie the station itself
+  (fixed v0.21; only the returned confidence is clamped).
+- Single-character tokens are dropped ("Crusader's" → stray `s` polluted the overlap).
 - **Code tokens** (`s1dc06`, `hur-l5`, `2ub-rb9-5`) get strong weight; **letter↔digit OCR
   confusions are normalized** (`S↔5, O↔0, I/L↔1, B↔8…`) so `ARC-LS` → `ARC-L5`.
 - **Deliberately NOT edit-distance on codes.** `ARC-L4` and `ARC-L5` are *different stations*;
   a near-miss must flag **novel** (for review) rather than silently merge to the wrong place.
-  This is a safety property — do not "improve" it into fuzzy numeric matching.
+  This is a safety property — do not "improve" it into fuzzy numeric matching. One nuance
+  (v0.21): if the query ALSO carries ≥2 distinctive non-code words that all match the
+  candidate ("CRU-LA **Shallow Fields** Station"), the words carry it and the code-mismatch
+  penalty is softened — a garbled bare code alone still flags novel.
 - Below threshold → `{novel:true}`, surfaced for one-click add-to-catalog.
+- **The catalog must name stations the way contracts do.** The Stanton Lagrange stations
+  carry their full in-game names (`CRU-L4 Shallow Fields Station`, not bare `CRU-L4`) —
+  with only bare codes, sub-store rows outscored everything and codeless OCR text
+  ("Beautiful Glen Station") matched nothing (fixed v0.21 in `/data/locations.csv`).
 
 ### Review UI
 Wide modal. Editable rows (full names, no truncation), `+ Add row`, per-row delete. A
@@ -444,7 +459,9 @@ an **industrial "dispatch desk"** aesthetic. Honor it:
 - **Add a new section/zone:** wrap in `<Zone accent="var(--c-…)" title="…">`; add a color
   token in `app.css`.
 - **Tune OCR:** preprocessing knobs are in `ocr.ts` (`preprocess`); parser rules in
-  `parseMission.ts`; matcher in `match.ts`. Add real screenshots as test cases first.
+  `parseMission.ts`; matcher in `match.ts`. Transcribe the screenshot into
+  `test/parser-tests.mjs` first, then fix until `npm run test:parser` passes (and keep it
+  passing — it's the importer's regression suite).
 - **Restyle:** edit tokens in `app.css` `:root`; respect §12. Verify both light AND dark.
 
 ---
@@ -457,8 +474,13 @@ an **industrial "dispatch desk"** aesthetic. Honor it:
   are the safety net. Cryptic outpost codes are the error-prone case.
 - No multi-cell spreadsheet paste in the manifest (single-cell + reference rail + tab-nav
   instead — a deliberate scope call).
-- No automated tests in CI (verification is `svelte-check` + manual/headless Playwright runs
-  during development). A test harness would be a reasonable future add.
+- **Parser/matcher regression tests exist** (v0.21): `npm run test:parser` runs
+  `test/parser-tests.mjs` (plain Node, no framework — 35 assertions built from real contract
+  screenshots + OCR-noise variants, matched against the real CSVs). When the importer
+  misbehaves on a new screenshot, transcribe it into that file first, then fix.
+  `test/ocr-harness.html` + `test/ocr-e2e.mjs` drive the REAL Tesseract pipeline end-to-end
+  on a synthetic contract render (needs `npm run dev` + playwright; dev-only, not built).
+  No CI wiring yet.
 - Touch drag/resize works but benefits from real-device testing.
 
 ---
