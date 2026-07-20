@@ -11,7 +11,7 @@ chronological record of what changed and the reasoning behind each call.
 
 ## v0.21 — OCR importer accuracy pass (driven by real contract screenshots)
 
-Reviewed against five real "Senior Rank — Medium Cargo Haul" Covalex screenshots; all are
+Reviewed against ten real "Senior Rank — Medium Cargo Haul" Covalex screenshots; all are
 transcribed into a new regression suite (see below) and an end-to-end harness runs the real
 Tesseract pipeline on a synthetic render of the same layout.
 
@@ -56,7 +56,7 @@ Tesseract pipeline on a synthetic render of the same layout.
   (production build was always fine; worker/core stay vendored in `public/ocr`).
 
 **Tests (new, first in the repo):**
-- `npm run test:parser` — `test/parser-tests.mjs`, 35 assertions: the five transcribed
+- `npm run test:parser` — `test/parser-tests.mjs`, 45 assertions: ten transcribed
   screenshots (legs/SCU/sources/destinations/reward/box limits), OCR-noise variants, the
   deconflict alignment + majority cases, and matcher resolution of every location/commodity
   in the shots against the real CSVs. Plain Node (`--experimental-strip-types`), no deps.

@@ -475,7 +475,7 @@ an **industrial "dispatch desk"** aesthetic. Honor it:
 - No multi-cell spreadsheet paste in the manifest (single-cell + reference rail + tab-nav
   instead — a deliberate scope call).
 - **Parser/matcher regression tests exist** (v0.21): `npm run test:parser` runs
-  `test/parser-tests.mjs` (plain Node, no framework — 35 assertions built from real contract
+  `test/parser-tests.mjs` (plain Node, no framework — 45 assertions built from real contract
   screenshots + OCR-noise variants, matched against the real CSVs). When the importer
   misbehaves on a new screenshot, transcribe it into that file first, then fix.
   `test/ocr-harness.html` + `test/ocr-e2e.mjs` drive the REAL Tesseract pipeline end-to-end

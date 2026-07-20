@@ -183,6 +183,151 @@ Station.
 }
 
 // ---------------------------------------------------------------------------
+// Shots 6–10 (second batch of real screenshots, 2026-07)
+// ---------------------------------------------------------------------------
+const shot6 = `
+Reward ¤ 279,250
+Deliver 0/142 SCU of Aluminum to Port Tressler above
+microTech.
+Collect Aluminum from CRU-L4 Shallow Fields
+Station.
+Deliver 0/143 SCU of Aluminum to Seraphim Station
+above Crusader.
+Collect Aluminum from CRU-L4 Shallow Fields
+Station.
+Deliver 0/139 SCU of Aluminum to Everus Harbor above
+Hurston.
+Collect Aluminum from CRU-L4 Shallow Fields
+Station.
+`;
+{
+  const m = parseMission(shot6);
+  check('shot6 legs', m.legs.map(legTuple), [
+    ['Aluminum', 142, 'CRU-L4 Shallow Fields Station', 'Port Tressler'],
+    ['Aluminum', 143, 'CRU-L4 Shallow Fields Station', 'Seraphim Station'],
+    ['Aluminum', 139, 'CRU-L4 Shallow Fields Station', 'Everus Harbor'],
+  ]);
+  check('shot6 reward', m.reward, 279250);
+}
+
+const shot7 = `
+Reward ¤ 323,500
+Deliver 0/82 SCU of Tungsten to Seraphim Station above
+Crusader.
+Collect Tungsten from CRU-L4 Shallow Fields
+Station.
+Deliver 0/68 SCU of Tungsten to Port Tressler above
+microTech.
+Collect Tungsten from CRU-L4 Shallow Fields
+Station.
+Deliver 0/77 SCU of Tungsten to Everus Harbor above
+Hurston.
+Collect Tungsten from CRU-L4 Shallow Fields
+Station.
+Deliver 0/82 SCU of Tungsten to Baijini Point above
+ArcCorp.
+Collect Tungsten from CRU-L4 Shallow Fields
+Station.
+`;
+{
+  const m = parseMission(shot7);
+  check('shot7 legs', m.legs.map(legTuple), [
+    ['Tungsten', 82, 'CRU-L4 Shallow Fields Station', 'Seraphim Station'],
+    ['Tungsten', 68, 'CRU-L4 Shallow Fields Station', 'Port Tressler'],
+    ['Tungsten', 77, 'CRU-L4 Shallow Fields Station', 'Everus Harbor'],
+    ['Tungsten', 82, 'CRU-L4 Shallow Fields Station', 'Baijini Point'],
+  ]);
+  check('shot7 reward', m.reward, 323500);
+}
+
+// Mixed commodities with the SAME destination twice (Everus gets Aluminum AND Tungsten) —
+// exercises per-commodity collect attachment.
+const shot8 = `
+Reward ¤ 345,500
+Deliver 0/74 SCU of Aluminum to Everus Harbor above
+Hurston.
+Collect Aluminum from CRU-L4 Shallow Fields
+Station.
+Deliver 0/101 SCU of Aluminum to Baijini Point above
+ArcCorp.
+Collect Aluminum from CRU-L4 Shallow Fields
+Station.
+Deliver 0/101 SCU of Tungsten to Port Tressler above
+microTech.
+Collect Tungsten from CRU-L4 Shallow Fields
+Station.
+Deliver 0/83 SCU of Tungsten to Everus Harbor above
+Hurston.
+Collect Tungsten from CRU-L4 Shallow Fields
+Station.
+`;
+{
+  const m = parseMission(shot8);
+  check('shot8 legs', m.legs.map(legTuple), [
+    ['Aluminum', 74, 'CRU-L4 Shallow Fields Station', 'Everus Harbor'],
+    ['Aluminum', 101, 'CRU-L4 Shallow Fields Station', 'Baijini Point'],
+    ['Tungsten', 101, 'CRU-L4 Shallow Fields Station', 'Port Tressler'],
+    ['Tungsten', 83, 'CRU-L4 Shallow Fields Station', 'Everus Harbor'],
+  ]);
+  check('shot8 reward', m.reward, 345500);
+}
+
+const shot9 = `
+Reward ¤ 282,500
+Deliver 0/83 SCU of Tungsten to Baijini Point above
+ArcCorp.
+Collect Tungsten from CRU-L4 Shallow Fields
+Station.
+Deliver 0/133 SCU of Tungsten to Seraphim Station above
+Crusader.
+Collect Tungsten from CRU-L4 Shallow Fields
+Station.
+Deliver 0/118 SCU of Tungsten to Everus Harbor above
+Hurston.
+Collect Tungsten from CRU-L4 Shallow Fields
+Station.
+`;
+{
+  const m = parseMission(shot9);
+  check('shot9 legs', m.legs.map(legTuple), [
+    ['Tungsten', 83, 'CRU-L4 Shallow Fields Station', 'Baijini Point'],
+    ['Tungsten', 133, 'CRU-L4 Shallow Fields Station', 'Seraphim Station'],
+    ['Tungsten', 118, 'CRU-L4 Shallow Fields Station', 'Everus Harbor'],
+  ]);
+  check('shot9 reward', m.reward, 282500);
+}
+
+const shot10 = `
+Reward ¤ 318,250
+Deliver 0/107 SCU of Aluminum to Port Tressler above
+microTech.
+Collect Aluminum from CRU-L4 Shallow Fields
+Station.
+Deliver 0/67 SCU of Aluminum to Seraphim Station above
+Crusader.
+Collect Aluminum from CRU-L4 Shallow Fields
+Station.
+Deliver 0/74 SCU of Aluminum to Baijini Point above
+ArcCorp.
+Collect Aluminum from CRU-L4 Shallow Fields
+Station.
+Deliver 0/77 SCU of Aluminum to Everus Harbor above
+Hurston.
+Collect Aluminum from CRU-L4 Shallow Fields
+Station.
+`;
+{
+  const m = parseMission(shot10);
+  check('shot10 legs', m.legs.map(legTuple), [
+    ['Aluminum', 107, 'CRU-L4 Shallow Fields Station', 'Port Tressler'],
+    ['Aluminum', 67, 'CRU-L4 Shallow Fields Station', 'Seraphim Station'],
+    ['Aluminum', 74, 'CRU-L4 Shallow Fields Station', 'Baijini Point'],
+    ['Aluminum', 77, 'CRU-L4 Shallow Fields Station', 'Everus Harbor'],
+  ]);
+  check('shot10 reward', m.reward, 318250);
+}
+
+// ---------------------------------------------------------------------------
 // Box limit lives in the Details column ("containers 16 SCU or smaller")
 // ---------------------------------------------------------------------------
 {
