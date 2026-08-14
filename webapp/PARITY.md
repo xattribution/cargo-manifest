@@ -9,6 +9,47 @@ chronological record of what changed and the reasoning behind each call.
 
 ---
 
+## v0.22 — design-audit pass (AI-slop research applied)
+
+Audited against the 2026 "AI design slop" research corpus (Kadoa/Krebs Show HN audit,
+Impeccable.style, Developers Digest taxonomy, dark-dashboard craft articles). The app
+already avoided the marquee tells by design — no gradients, no glow, square corners,
+tables over cards, layered off-black dark surfaces. Two real findings were fixed, both
+from the report's durable principle: *every visual decision bound to function*.
+
+**1. WCAG AA contrast (the "grey-on-grey below AA" tell) — 12 failing pairs fixed.**
+Worst offender: light-theme SCU numerals at **2.67:1** (the app's most important data).
+New deterministic checker `npm run test:contrast` (`test/contrast-check.mjs`) verifies
+~30 token/surface pairs at ≥4.5:1 and **must stay green when touching color tokens**.
+The token model was restructured to make this hold:
+- **Signal text tokens** (`--cyan/--green/--amber/--red`) are now **theme-split** — darker
+  on manila, lighter on charcoal (colored *text* can't be one value on both).
+- **Solid fill tokens** (`--*-fill`) are constant with verified text-on-fill pairs;
+  `badge.warn` switched to dark ink on amber (white on amber was 3.21:1).
+- **Sidebar accent tokens** (`--side-*`) are pinned dark-surface-safe (the sidebar is
+  dark in both themes and must not follow the workspace split).
+- `--ink-faint`/`--side-faint` (hints, empty states, tiny labels) bumped to ≥4.5:1;
+  `--done-ink` light darkened; size-column table headers use neutral ink (amber can't
+  reach 4.5 on the header band without going muddy — amber stays on the data).
+- Removed dead `--violet/--orange/--steel` tokens.
+
+**2. Decorative edge stripes (the report's "single most recognizable tell") removed;
+semantic bars kept.** Gone: steel top-stripes on the Overview strip and quick-fill rail,
+the cyan modal top-stripe, the cyan bar on the Submit-% note, and the per-card zone-color
+stripe on Pick Up / Drop Off cards. **Kept, deliberately:** the green left bar on the
+optimizer's "deliver N SCU" line (recommendation) and the amber bar on the undo toast
+(caution) — the rule, now in ARCHITECTURE §12: *a colored edge bar is a semantic signal
+(green = recommended, amber = caution), never decoration*.
+
+**Also:** `⚙/☀/⚠` glyphs carry U+FE0E variation selectors so they can never render as
+color emoji (the "emoji as UI" tell) — the app's icon language stays monochrome text
+glyphs. Audited and deliberately KEPT as domain identity, per the research's own caveat:
+manila/paper palette (logistics documents), mono/uppercase micro-labels (SCADA register),
+four distinct zone hues (wayfinding, user-requested), amber-as-cargo-numeral convention,
+and the status dot (it maps to real storage state).
+
+---
+
 ## v0.21 — OCR importer accuracy pass (driven by real contract screenshots)
 
 Reviewed against ten real "Senior Rank — Medium Cargo Haul" Covalex screenshots; all are

@@ -117,10 +117,10 @@
 
     <div class="side-foot">
       <button class="ic" title="Help" aria-label="Help" onclick={() => (helpOpen = true)}>?</button>
-      <button class="ic" title="Toggle light / dark" aria-label="Toggle light or dark theme" onclick={() => theme.toggle()}>{theme.value === 'dark' ? '☀' : '☾'}</button>
+      <button class="ic" title="Toggle light / dark" aria-label="Toggle light or dark theme" onclick={() => theme.toggle()}>{theme.value === 'dark' ? '☀︎' : '☾'}</button>
       <div class="menu-wrap">
         <button class="ic" title="Menu" aria-haspopup="menu" aria-expanded={menuOpen}
-          onclick={(e) => { e.stopPropagation(); menuOpen = !menuOpen; }}>⚙</button>
+          onclick={(e) => { e.stopPropagation(); menuOpen = !menuOpen; }}>⚙︎</button>
         {#if menuOpen}
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <div class="menu" role="menu" tabindex="-1" onclick={(e) => e.stopPropagation()}>
@@ -195,7 +195,7 @@
       <li><b>Fast entry</b>: Tab moves by the <b>Tab ↓/→</b> direction (Enter always goes down); hold <b>Ctrl</b> + an arrow key to move any direction for one cell. The quick-fill list beside a trip fills the focused cell.</li>
       <li><b>Import from screenshot</b>: on a trip, click <b>⎙ Import</b> and paste/drop a screenshot of the mission’s <b>Primary Objectives</b> panel. It reads the text in your browser (never uploaded), matches commodities/locations to your catalog, and you review before it adds the rows.</li>
     </ol>
-    <p class="muted">Everything saves in your browser — nothing is sent to a server. Use ⚙ to export/import a run or the catalog CSVs.</p>
+    <p class="muted">Everything saves in your browser — nothing is sent to a server. Use ⚙︎ to export/import a run or the catalog CSVs.</p>
   </Modal>
 {/if}
 

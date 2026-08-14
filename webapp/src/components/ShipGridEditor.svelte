@@ -53,7 +53,7 @@
 </script>
 
 <Modal title="Edit ship cargo grid" {onClose}>
-  <p>Record the most efficient real arrangement: the <b>max container size</b> the ship takes, then how many of each size fit when the grid is full (leave blanks for sizes that don’t apply; small leftovers go in the smaller sizes). Saved in your browser; use <b>Export catalog CSVs</b> (⚙) to push it to the master set.</p>
+  <p>Record the most efficient real arrangement: the <b>max container size</b> the ship takes, then how many of each size fit when the grid is full (leave blanks for sizes that don’t apply; small leftovers go in the smaller sizes). Saved in your browser; use <b>Export catalog CSVs</b> (⚙︎) to push it to the master set.</p>
 
   <label class="modal-label" for="ge-ship">Ship</label>
   <input id="ge-ship" class="modal-input" list="shipList" bind:value={sel} onchange={() => loadFrom(sel)} spellcheck="false" placeholder="type a ship name…" />
@@ -78,7 +78,7 @@
   <div class="ge-total" class:over>
     Grid total: <b>{gridTotal.toLocaleString()} SCU</b>
     {#if nominalScu != null} / {nominalScu.toLocaleString()} nominal{/if}
-    {#if over}<span class="ge-warn"> ⚠ exceeds nominal capacity</span>{/if}
+    {#if over}<span class="ge-warn"> ⚠︎ exceeds nominal capacity</span>{/if}
   </div>
 
   <div class="modal-actions">

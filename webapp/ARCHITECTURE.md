@@ -394,6 +394,19 @@ an **industrial "dispatch desk"** aesthetic. Honor it:
 - **Distinct section hues** — blue (Overview) / olive (Manifest) / violet (Pick Up) /
   rust (Drop Off). Don't drift them back toward one another ("similar-color blob" is the
   other explicit user dislike); check both themes when touching `--c-*`.
+- **A colored edge bar is a semantic signal, never decoration** (v0.22): green left bar =
+  recommendation (optimizer deliver note), amber left bar = caution (undo toast). All
+  decorative stripes (steel/cyan panel trim, per-card zone stripes) were removed — do not
+  reintroduce a colored border-edge that doesn't encode a state.
+- **Contrast is enforced, not eyeballed** (v0.22): `npm run test:contrast` checks ~30
+  token/surface pairs at WCAG AA (≥4.5:1) and must stay green. The token model that makes
+  this possible: signal TEXT tokens (`--cyan/--green/--amber/--red`) are **theme-split**;
+  solid FILL tokens (`--*-fill`) are constant with verified text-on-fill pairs; sidebar
+  accents (`--side-*`) are pinned dark-safe because the sidebar is dark in both themes.
+  Never color text with a fill token or fill a control with a text token; when adding a
+  colored text/surface pair, add it to `test/contrast-check.mjs` in the same commit.
+- **Icons are monochrome text glyphs** (⚙︎ ▦ ⠿ ✕), never color emoji — glyphs with an
+  emoji presentation (⚙ ☀ ⚠) must carry the U+FE0E text variation selector.
 - **Full-row mission color** on the Manifest and Missions tables (every column), with
   auto-contrast text. NOT a left "tab" bar. (Pick-up/Drop-off cards keep a left accent bar —
   that's the one approved exception.)
