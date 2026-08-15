@@ -2,7 +2,7 @@
   import { run } from '../stores/run.svelte';
   import { aggregate, groupEntries, flatEntries, ALL_SIZES } from '../lib/crate';
   import { missionColor, missionFg } from '../lib/mission';
-  import { pillList } from '../lib/format';
+  import { sizeLine } from '../lib/format';
   import type { Entry } from '../lib/crate';
   import type { Item } from '../lib/types';
   import type { OptResult } from '../lib/optimize';
@@ -96,6 +96,7 @@
       {@const isBest = !!opt?.active && opt.best === g.key}
       {@const dimmed = !!opt?.active && !opt.recommended.has(g.key) && !opt.qualifying.has(g.key)}
       {@const plan = opt?.active ? opt.plans[g.key] : undefined}
+      {@const sizesTxt = sizeLine(g.agg.totals)}
       <div class="gcard {cls}" class:done={g.allDone} class:dragging={dragKey === g.key}
         class:on-route={onRoute} class:opt-best={isBest} class:opt-dim={dimmed} data-key={g.key}>
         <div class="ghead">
@@ -112,12 +113,11 @@
             deliver <b>{plan.scu.toLocaleString()} SCU</b> ({ALL_SIZES.filter((s) => plan.counts[s]).map((s) => `${plan.counts[s]}×${s}`).join(' ')}{#if !ALL_SIZES.some((s) => plan.counts[s])}—{/if})
           </div>
         {/if}
-        <div class="gpills">
-          {#each pillList(g.agg.totals) as p}<span class="pill {p.cls}">{p.n}<span class="mult">×</span>{p.size}</span>{/each}
-          {#if g.agg.leftover > 0}<span class="pill leftover">{g.agg.leftover} unpacked</span>{/if}
-          {#if pillList(g.agg.totals).length === 0 && g.agg.leftover === 0}<span style="color:var(--txt-faint)">—</span>{/if}
+        <div class="gsizes">
+          {#if sizesTxt}{g.agg.crates}&hairsp;crates&ensp;{sizesTxt}{/if}
+          {#if g.agg.leftover > 0}<span class="gs-warn">{sizesTxt ? ' · ' : ''}{g.agg.leftover} unpacked</span>{/if}
+          {#if !sizesTxt && g.agg.leftover === 0}—{/if}
         </div>
-        <div class="gmeta">{g.agg.crates} crate{g.agg.crates === 1 ? '' : 's'} · {g.items.length} item{g.items.length === 1 ? '' : 's'}</div>
         <div class="gitems">
           {#each g.list as entry (entry.it.id)}
             <div class="giline" class:gi-done={complete(entry.it)}>

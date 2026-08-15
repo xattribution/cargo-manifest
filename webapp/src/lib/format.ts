@@ -1,15 +1,10 @@
 // Small presentation helpers shared by components.
-import { aggregate, flatEntries, groupEntries, ALL_SIZES } from './crate';
+import { aggregate, flatEntries, groupEntries, deliveredScu, ALL_SIZES } from './crate';
 import type { RunState } from './types';
 
-export function pillClass(s: number): string {
-  return s === 32 ? 's32' : s === 24 ? 's24' : '';
-}
-
-export interface Pill { size: number; n: number; cls: string; }
-
-export function pillList(counts: Record<number, number>): Pill[] {
-  return ALL_SIZES.filter((s) => counts[s]).map((s) => ({ size: s, n: counts[s], cls: pillClass(s) }));
+// "2×32 · 1×16 · 3×8" — the ledger-style crate breakdown line (replaces the old chip row).
+export function sizeLine(counts: Record<number, number>): string {
+  return ALL_SIZES.filter((s) => counts[s]).map((s) => `${counts[s]}×${s}`).join(' · ');
 }
 
 // Datalist names = catalog names ∪ values already used in the run (matches original namesFor()).
@@ -28,6 +23,8 @@ export function summaryText(state: RunState): string {
   for (const s of ALL_SIZES) if (agg.totals[s]) parts.push(`${agg.totals[s]}× ${s}`);
   if (parts.length) out += `Crates: ${parts.join(', ')}\n`;
   if (agg.leftover > 0) out += `Unpacked: ${agg.leftover} SCU\n`;
+  const delivered = deliveredScu(state.sections);
+  if (delivered > 0) out += `Delivered: ${delivered}/${agg.scu} SCU\n`;
   out += `\nBy destination:\n`;
   const groups = [...groupEntries(state.sections, 'destination').entries()].sort((a, b) => aggregate(b[1]).scu - aggregate(a[1]).scu);
   for (const [k, list] of groups) {

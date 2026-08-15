@@ -33,14 +33,14 @@ function cleanLoc(s: string): string {
     .replace(/\babove\b.*$/i, '')            // "Everus Harbor above Hurston"
     .replace(/\bon\s+Hurston\b.*$/i, '')     // "... on Hurston"
     .replace(/\bin\s+[A-Z][a-z]+.*$/i, '')   // "Teasa Spaceport in Lorville"
-    .replace(/[|<>$_]+/g, ' ')               // OCR column-divider / glyph noise
+    .replace(/[|<>$_©®°•¢«»¬¤]+/g, ' ')      // OCR column-divider / bullet-glyph noise (◇ often reads as © etc.)
     .replace(/\s+[A-Za-z]\s*$/,'')           // dangling single stray letter ("... | I")
     .replace(/[.,]\s*$/, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
 function cleanCommodity(s: string): string {
-  return s.replace(/[.,]\s*$/, '').replace(/[|<>$]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return s.replace(/[.,]\s*$/, '').replace(/[|<>$©®°•¢«»¬¤]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 // OCR commonly splits an objective across 2 lines and may drop the trailing period.
@@ -57,18 +57,27 @@ function sentences(text: string): string[] {
     .filter(Boolean);
 }
 
+// Letters Tesseract commonly reads in place of digits inside a number ("14I" for 141,
+// "O/62" for 0/62). Only ever applied to captured NUMBER tokens, never to names.
+function fixDigits(s: string): string {
+  const map: Record<string, string> = { o: '0', O: '0', i: '1', I: '1', l: '1', L: '1', s: '5', S: '5', b: '8', B: '8', z: '2', Z: '2' };
+  return s.replace(/[oOiIlLsSbBzZ]/g, (ch) => map[ch] ?? ch);
+}
+const numFrom = (s: string): number => parseInt(fixDigits(s).replace(/[^\d]/g, ''), 10) || 0;
+
 // "Deliver 0/85 SCU of ..." — SCU is the number AFTER the slash (0 = amount delivered so far).
 // Capture commodity/destination as runs WITHOUT a period so trailing flavor text (e.g. the
-// Details column bleeding in via OCR) can't contaminate the fields. Tolerate slash OCR noise.
-const DELIVER = /deliver\s+\d+\s*[/|]\s*(\d+)\s*scu\s+of\s+([^.]+?)\s+to\s+([^.]+)/i;
+// Details column bleeding in via OCR) can't contaminate the fields. Tolerate slash OCR noise
+// and letter↔digit confusions in both numbers (O/62, 0/14I).
+const DELIVER = /deliver\s+[\doO]+\s*[/|\\]\s*([\doOiIlSsBbzZ]+)\s*scu\s+of\s+([^.]+?)\s+to\s+([^.]+)/i;
 const COLLECT = /collect\s+([^.]+?)\s+from\s+([^.]+)/i;
 const BOX = /(\d+)\s*scu\s*(?:or\s*(?:smaller|less|below)|in\s*size|or\s*smaller)/i;
 const BOX2 = /(?:no\s*larger\s*than|up\s*to|at\s*most[^.]*?)\s*(\d+)\s*scu/i;
 // Reward: anchor on the word "Reward" then the first number (the ¤ glyph is unreliable —
 // Tesseract often reads it as "=", "x", "¥", etc., so we don't depend on it). Falls back to
 // the aUEC/¤ forms if "Reward" isn't in frame.
-const REWARD_LABEL = /reward\b[^\d]{0,12}([\d][\d.,]{2,})/i;
-const REWARD_GLYPH = /(?:[¤¥€$]|a?uec)\s*([\d][\d.,]{2,})|([\d][\d.,]{2,})\s*a?uec/i;
+const REWARD_LABEL = /reward\b[^\d]{0,12}([\d][\d.,oOiIlSsBbzZ]{2,})/i;
+const REWARD_GLYPH = /(?:[¤¥€$]|a?uec)\s*([\d][\d.,oOiIlSsBbzZ]{2,})|([\d][\d.,]{2,})\s*a?uec/i;
 
 export function parseMission(objectivesText: string, detailsText = ''): ParsedMission {
   const raw = objectivesText;
@@ -85,7 +94,7 @@ export function parseMission(objectivesText: string, detailsText = ''): ParsedMi
   let reward: number | null = null;
   for (const src of [objectivesText, detailsText]) {
     const m = src.match(REWARD_LABEL) || src.match(REWARD_GLYPH);
-    if (m) { const n = parseInt((m[1] || m[2] || '').replace(/[.,]/g, ''), 10); if (n >= 100) { reward = n; break; } }
+    if (m) { const n = numFrom(m[1] || m[2] || ''); if (n >= 100) { reward = n; break; } }
   }
 
   // First pass: collect deliveries (in order) and the collect-sources that follow each.
@@ -95,7 +104,7 @@ export function parseMission(objectivesText: string, detailsText = ''): ParsedMi
     const d = line.match(DELIVER);
     if (d) {
       deliveries.push({
-        scu: parseInt(d[1], 10) || 0,
+        scu: numFrom(d[1]),
         commodity: cleanCommodity(d[2]),
         destination: cleanLoc(d[3]),
         sources: [],
@@ -132,14 +141,18 @@ export function parseMission(objectivesText: string, detailsText = ''): ParsedMi
 
 // Deconflict several OCR passes of the SAME mission into one best result. Legs are aligned by
 // order; each field is chosen by majority vote (ties → the value from the highest-confidence
-// pass, which is passed first). SCU votes on the numeric value. maxBox/reward take the first
-// non-null. This fixes per-character OCR drift (e.g. "ARC-LS" vs "ARC-L5", "8" vs "81").
+// pass, which is passed first). SCU votes on the numeric value. maxBox/reward vote on the
+// value across all passes. This fixes per-character OCR drift (e.g. "ARC-LS" vs "ARC-L5",
+// "8" vs "81"). CRITICAL: only passes with the SAME leg count as the anchor vote per-field —
+// a pass that dropped a leg has every later leg shifted by one, and letting it vote would
+// let two shifted passes outvote the one complete pass.
 export function deconflict(missions: ParsedMission[]): ParsedMission {
   const valid = missions.filter((m) => m.legs.length);
   if (!valid.length) return missions[0] || { legs: [], maxBox: null, reward: null, raw: '' };
   // anchor on the pass with the most legs (most complete), then the earliest such
   const anchor = valid.reduce((a, b) => (b.legs.length > a.legs.length ? b : a), valid[0]);
   const n = anchor.legs.length;
+  const aligned = valid.filter((m) => m.legs.length === n);
 
   const vote = (vals: string[]): string => {
     const counts = new Map<string, number>();
@@ -147,10 +160,15 @@ export function deconflict(missions: ParsedMission[]): ParsedMission {
     vals.forEach((v) => { if (!v) return; const c = (counts.get(v) || 0) + 1; counts.set(v, c); if (c > bestC) { bestC = c; best = v; } });
     return best;
   };
+  const voteNum = (vals: (number | null)[]): number | null => {
+    const present = vals.filter((v): v is number => v != null);
+    if (!present.length) return null;
+    return Number(vote(present.map(String)));
+  };
 
   const legs: ParsedLeg[] = [];
   for (let i = 0; i < n; i++) {
-    const variants = valid.map((m) => m.legs[i]).filter(Boolean);
+    const variants = aligned.map((m) => m.legs[i]).filter(Boolean);
     const a = anchor.legs[i];
     legs.push({
       commodity: vote(variants.map((v) => v.commodity)) || a.commodity,
@@ -162,8 +180,8 @@ export function deconflict(missions: ParsedMission[]): ParsedMission {
   }
   return {
     legs,
-    maxBox: valid.map((m) => m.maxBox).find((x) => x != null) ?? null,
-    reward: valid.map((m) => m.reward).find((x) => x != null) ?? null,
+    maxBox: voteNum(valid.map((m) => m.maxBox)),
+    reward: voteNum(valid.map((m) => m.reward)),
     raw: anchor.raw,
   };
 }

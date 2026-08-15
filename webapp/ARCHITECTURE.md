@@ -139,14 +139,14 @@ They're independently testable. **Keep them framework-free** — UI lives in com
 |---|---|---|
 | `types.ts` | All shared interfaces | `Item`, `Trip`, `RunState`, `Category`, `CatalogDelta`, `ShipGrid`, `emptyDelta()`. **Single place to change the data model.** |
 | `csv.ts` | Quote-aware CSV parse/serialize | `parseCSV`, `toCSV`. Handles escaped quotes, CRLF, BOM. Battle-tested — *don't rewrite casually.* |
-| `crate.ts` | **The crate-packing algorithm** + aggregation | `breakdown(scu, sizes)` greedy largest-first; `aggregate(entries)`; `flatEntries`; `fitTarget`; `maxCrateSize`; `groupEntries`; `ALL_SIZES=[32,24,16,8,4,2,1]`. |
+| `crate.ts` | **The crate-packing algorithm** + aggregation | `breakdown(scu, sizes)` greedy largest-first; `aggregate(entries)`; `flatEntries`; `fitTarget`; `maxCrateSize`; `groupEntries`; `deliveredScu(sections)` (SCU of done lines); `ALL_SIZES=[32,24,16,8,4,2,1]`. |
 | `mission.ts` | Mission colors | `MISSION_COLORS` (10 matte hues), `missionColor(n)`, `missionFg(hex)` (auto dark/cream contrast via luminance). |
-| `missions.ts` | Per-mission rollup | `missionRollups(sections, order)` — buckets items by mission #, honours display order, keeps **blank** missions visible. |
+| `missions.ts` | Per-mission rollup | `missionRollups(sections, order)` — buckets items by mission #, honours display order, keeps **blank** missions visible; each rollup carries `done`/`doneScu` delivery progress. |
 | `catalog.ts` | Catalog accessors + grid + fit | `nameKey/scuKeyOf/ownedKeyOf`, `materializeShips/materializeSimple`, `shipGridOf`, **`shipFit(row, loadScu, loadMaxSize)`** (the grid-aware fit used everywhere), `FILES`, `DEFAULT_HEADERS`, `SHIP_GRID_COLS`. |
 | `match.ts` | **OCR→catalog fuzzy matcher** | `matchName(query, names, threshold)`. Token + code-aware (see §9). |
 | `parseMission.ts` | **OCR text → structured legs** | `parseMission(objText, detailsText)`, `deconflict(missions[])`. Grammar + rules in §9. |
 | `ocr.ts` | Tesseract wrapper | `ocrMulti(file, passes, onProgress)`, `ocrPass`, image preprocessing. Lazy dynamic-import; local assets. |
-| `format.ts` | Presentation helpers | `pillList`, `datalistNames`, `summaryText` (Copy Summary). |
+| `format.ts` | Presentation helpers | `sizeLine` (ledger-style `2×32 · 1×16` breakdown text), `datalistNames`, `summaryText` (Copy Summary). |
 | `storage.ts` | localStorage run+delta | `loadRun/saveRun`, `loadDelta/saveDelta`, `clearAll`, `storageOk` probe. |
 | `theme.svelte.ts` | Light/dark theme (rune store) | `theme.value`, `theme.toggle()`. Sets `<html data-theme>` + `color-scheme`. |
 | `prefs.svelte.ts` | Tab direction (rune store) | `prefs.tabDir`, `prefs.toggleTabDir()`. |
@@ -191,16 +191,16 @@ deliberate choice for one-place theming.
 
 | Component | Renders | Notes / intent |
 |---|---|---|
-| `App.svelte` | The shell: dark **sidebar** (brand, run summary, Fleet, footer w/ ?/theme/cog) + light **workspace** (Overview, Manifest, Routes) + all top-level modals (Help, Export, Ship grid, Mission import). | Owns global wiring: autosave `$effect`, datalists, download/export/import, theme/menu state. Mobile: sidebar becomes an off-canvas drawer (`☰`). |
+| `App.svelte` | The shell: dark **sidebar** (brand, run summary + delivered-progress meter, Fleet, footer w/ ?/theme/cog) + light **workspace** (Overview, Manifest, Routes) + all top-level modals (Help, Export, Ship grid, Mission import) + the **undo toast**. | Owns global wiring: autosave `$effect`, datalists, download/export/import, theme/menu state, undo-toast auto-dismiss. Mobile: sidebar becomes an off-canvas drawer (`☰`). |
 | `Zone.svelte` | A titled workspace section with a solid colored header bar (accent), optional number, actions slot, collapsible. | The section "band". Accent set via `--accent`. |
 | `Fleet.svelte` | The **sidebar** fleet: fit-mode toggle (Per-mission/Largest trip/Combined), owned ships (`fit-dot · name · SCU`), per-ship expand for capacity/grid/remove, add-ship row. Collapsible (persisted). | Uses `shipFit()`. "Best fit" = smallest hull that fits, starred. |
-| `Overview.svelte` | Wraps the summary **stat tiles** + per-size chips + Copy Summary, then `<Missions/>`. | The merged "Overview" zone (Missions + Loadout Summary). |
-| `Missions.svelte` | The **missions register** table: per-mission rollup (SCU, size cols, box, pick→drop, ship + grid-aware fit badge, reward), total footer. Drag-reorder, delete (confirm), + Add blank mission. | Mission # is the identity (1–10) and drives color. `missionOrder` is display order only. |
+| `Overview.svelte` | The summary **ledger strip** (one ruled container: SCU/crates/commodities/destinations/delivered stats + the mono crate-size line + Copy Summary), then `<Missions/>`. | The merged "Overview" zone (Missions + Loadout Summary). |
+| `Missions.svelte` | The **missions register** table: per-mission rollup (SCU, size cols, box, pick→drop, **Done** delivered-SCU column, ship + grid-aware fit badge, reward), total footer (incl. avg **¤/SCU**). Drag-reorder, delete (confirm + undo toast), + Add blank mission. | Mission # is the identity (1–10) and drives color. `missionOrder` is display order only. |
 | `TripPanel.svelte` | One **trip**: name, subtotal, import button, crate-size toggles, the cargo **grid table** (`<colgroup>` fixed layout), the quick-fill reference rail, add-commodity. | Owns: column resize, row drag-reorder (pointer-based), and **directional Tab/Enter/Ctrl+Arrow** grid navigation (§8). |
 | `ItemRow.svelte` | One cargo line `<tr>`: drag grip, mission #, commodity/SCU/from/to fields, per-size crate cells, crates count, done checkbox, delete. | **Entire row is the mission color** (full-row, not a tab) with auto-contrast `--rowfg`. |
 | `Field.svelte` | Reusable text input + datalist autocomplete + novelty `+` (add to catalog). | `data-f`/`data-row` attrs enable grid keyboard nav. |
 | `Routes.svelte` | The **Pick Up | Drop Off** two-column section, side by side. | Pick-up left (collect), drop-off right (deliver). |
-| `GroupSection.svelte` | A grouped card list (by source or destination). Cards drag-reorder; bidirectional completion. | Pick-up check = `pickedUp` (visual). Drop-off check = `done` (real). A source auto-checks once all its cargo is delivered. |
+| `GroupSection.svelte` | A grouped card list (by source or destination). Cards drag-reorder; bidirectional completion. Crate breakdown is a mono `.gsizes` ledger line (no chips); mission markers are 16px color-code squares. | Pick-up check = `pickedUp` (visual). Drop-off check = `done` (real). A source auto-checks once all its cargo is delivered. |
 | `Missions`/`Fleet` fit badge | Shared semantics via `shipFit()`. | ✓ fits · ≤N oversize (box too big) · −N short. |
 | `ShipGridEditor.svelte` | Modal to edit a ship's cargo grid (max box + per-size counts) with live total-vs-nominal check. | Writes to catalog delta `shipGrids`. |
 | `MissionImport.svelte` | The **Screenshot Import** flow (see §9): drop/paste/pick → crop → OCR (3 passes) → parse → match → review table + suggestions sidebar → append as a mission. | The most complex component. ~300 lines. |
@@ -303,19 +303,34 @@ Critical rules baked in (each fixes a real reported bug):
   Tesseract often reads it as `=`); falls back to `¤`/`aUEC` forms.
 
 `deconflict(missions[])` aligns legs across the 3 passes and **votes per field** (majority;
-ties → highest-confidence pass). SCU votes on the numeric value.
+ties → highest-confidence pass). SCU votes on the numeric value. Only passes with the
+**same leg count as the anchor** vote per-field — a pass that dropped a leg has every later
+leg shifted and would corrupt the vote (v0.21). `reward`/`maxBox` vote by majority too.
+Captured **numbers** (SCU, reward) run through a letter→digit fixer (`O/62` → `0/62`,
+`14I` → `141`) — applied to numbers only, never names. The default crop box is the right
+55% at **full height** so the top-right Reward header is included.
 
 ### Matching (`match.ts → matchName`)
 Token + code-aware fuzzy match against catalog names:
 - Token-overlap (Dice) + containment, so `"High Course Station"` matches
   `"HUR-L5 High Course Station"` and prefers the **tightest container** (the station, not
-  `"Platinum Bay (HUR-L5 High Course Station)"`).
+  `"Platinum Bay (HUR-L5 High Course Station)"`). Comparison scores are **unclamped** —
+  clamping to 1.0 before comparing once let padded sub-locations tie the station itself
+  (fixed v0.21; only the returned confidence is clamped).
+- Single-character tokens are dropped ("Crusader's" → stray `s` polluted the overlap).
 - **Code tokens** (`s1dc06`, `hur-l5`, `2ub-rb9-5`) get strong weight; **letter↔digit OCR
   confusions are normalized** (`S↔5, O↔0, I/L↔1, B↔8…`) so `ARC-LS` → `ARC-L5`.
 - **Deliberately NOT edit-distance on codes.** `ARC-L4` and `ARC-L5` are *different stations*;
   a near-miss must flag **novel** (for review) rather than silently merge to the wrong place.
-  This is a safety property — do not "improve" it into fuzzy numeric matching.
+  This is a safety property — do not "improve" it into fuzzy numeric matching. One nuance
+  (v0.21): if the query ALSO carries ≥2 distinctive non-code words that all match the
+  candidate ("CRU-LA **Shallow Fields** Station"), the words carry it and the code-mismatch
+  penalty is softened — a garbled bare code alone still flags novel.
 - Below threshold → `{novel:true}`, surfaced for one-click add-to-catalog.
+- **The catalog must name stations the way contracts do.** The Stanton Lagrange stations
+  carry their full in-game names (`CRU-L4 Shallow Fields Station`, not bare `CRU-L4`) —
+  with only bare codes, sub-store rows outscored everything and codeless OCR text
+  ("Beautiful Glen Station") matched nothing (fixed v0.21 in `/data/locations.csv`).
 
 ### Review UI
 Wide modal. Editable rows (full names, no truncation), `+ Add row`, per-row delete. A
@@ -336,8 +351,13 @@ A "mission" is identified by its **number 1–10**. That number:
 `missionOrder` is a **display order only** (array of mission #s) — reordering missions does
 **not** renumber them (so colors stay stable and the manifest doesn't recolor). Blank
 missions (in `missionOrder` with no items) stay visible so you can build them up.
-`run.deleteMission(n)` removes the mission's manifest **items** + all its metadata.
-`run.addMission()` picks the lowest free 1–10. Max 10 missions (SC's board limit).
+`run.deleteMission(n)` removes the mission's manifest **items** + all its metadata (and
+snapshots the run for the undo toast). `run.addMission()` picks the lowest free 1–10.
+Max 10 missions (SC's board limit).
+
+**Mission #s are global across trips.** `addImportedLegs` (the OCR importer) picks the
+lowest number free across **every** trip + `missionOrder` — never just the target trip —
+otherwise an import would silently merge with a mission on another trip (fixed in v0.20).
 
 ---
 
@@ -352,6 +372,9 @@ missions (in `missionOrder` with no items) stay visible so you can build them up
 - **ids:** items/trips use `id` like `id7`; `nid()` is a monotonic generator; `reId()`
   reconciles the counter after loading saved ids. Don't reference items by array index for
   persistence — use `id`.
+- **Undo:** destructive run mutations (mission delete, clear-all, non-empty trip removal)
+  snapshot the full pre-op `RunState` into `run.undoInfo` (one level, **transient** — never
+  persisted). `App.svelte` renders the toast and auto-dismisses after 10s.
 
 ---
 
@@ -364,6 +387,26 @@ an **industrial "dispatch desk"** aesthetic. Honor it:
   flips the whole page to charcoal via `[data-theme]` tokens.
 - **Solid, matte section header fills** (not transparency overlays). Square corners. **No
   glows, no gradients, no angular `clip-path` panels** (all removed — don't reintroduce).
+- **NO pills / chips** (v0.20, explicit user dislike). Small data clusters (crate
+  breakdowns, counts) render as **ledger-style mono text lines** (`2×32 · 1×16`) or plain
+  ruled lists — never as rows of little bordered boxes. The 16px mission **color-code
+  square** and the solid fit **stamps** are the only tiny colored blocks allowed.
+- **Distinct section hues** — blue (Overview) / olive (Manifest) / violet (Pick Up) /
+  rust (Drop Off). Don't drift them back toward one another ("similar-color blob" is the
+  other explicit user dislike); check both themes when touching `--c-*`.
+- **A colored edge bar is a semantic signal, never decoration** (v0.22): green left bar =
+  recommendation (optimizer deliver note), amber left bar = caution (undo toast). All
+  decorative stripes (steel/cyan panel trim, per-card zone stripes) were removed — do not
+  reintroduce a colored border-edge that doesn't encode a state.
+- **Contrast is enforced, not eyeballed** (v0.22): `npm run test:contrast` checks ~30
+  token/surface pairs at WCAG AA (≥4.5:1) and must stay green. The token model that makes
+  this possible: signal TEXT tokens (`--cyan/--green/--amber/--red`) are **theme-split**;
+  solid FILL tokens (`--*-fill`) are constant with verified text-on-fill pairs; sidebar
+  accents (`--side-*`) are pinned dark-safe because the sidebar is dark in both themes.
+  Never color text with a fill token or fill a control with a text token; when adding a
+  colored text/surface pair, add it to `test/contrast-check.mjs` in the same commit.
+- **Icons are monochrome text glyphs** (⚙︎ ▦ ⠿ ✕), never color emoji — glyphs with an
+  emoji presentation (⚙ ☀ ⚠) must carry the U+FE0E text variation selector.
 - **Full-row mission color** on the Manifest and Missions tables (every column), with
   auto-contrast text. NOT a left "tab" bar. (Pick-up/Drop-off cards keep a left accent bar —
   that's the one approved exception.)
@@ -429,7 +472,9 @@ an **industrial "dispatch desk"** aesthetic. Honor it:
 - **Add a new section/zone:** wrap in `<Zone accent="var(--c-…)" title="…">`; add a color
   token in `app.css`.
 - **Tune OCR:** preprocessing knobs are in `ocr.ts` (`preprocess`); parser rules in
-  `parseMission.ts`; matcher in `match.ts`. Add real screenshots as test cases first.
+  `parseMission.ts`; matcher in `match.ts`. Transcribe the screenshot into
+  `test/parser-tests.mjs` first, then fix until `npm run test:parser` passes (and keep it
+  passing — it's the importer's regression suite).
 - **Restyle:** edit tokens in `app.css` `:root`; respect §12. Verify both light AND dark.
 
 ---
@@ -442,8 +487,13 @@ an **industrial "dispatch desk"** aesthetic. Honor it:
   are the safety net. Cryptic outpost codes are the error-prone case.
 - No multi-cell spreadsheet paste in the manifest (single-cell + reference rail + tab-nav
   instead — a deliberate scope call).
-- No automated tests in CI (verification is `svelte-check` + manual/headless Playwright runs
-  during development). A test harness would be a reasonable future add.
+- **Parser/matcher regression tests exist** (v0.21): `npm run test:parser` runs
+  `test/parser-tests.mjs` (plain Node, no framework — 45 assertions built from real contract
+  screenshots + OCR-noise variants, matched against the real CSVs). When the importer
+  misbehaves on a new screenshot, transcribe it into that file first, then fix.
+  `test/ocr-harness.html` + `test/ocr-e2e.mjs` drive the REAL Tesseract pipeline end-to-end
+  on a synthetic contract render (needs `npm run dev` + playwright; dev-only, not built).
+  No CI wiring yet.
 - Touch drag/resize works but benefits from real-device testing.
 
 ---

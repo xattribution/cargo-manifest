@@ -15,6 +15,9 @@
   const cols = $derived(ALL_SIZES.filter((s) => rollups.some((r) => r.agg.totals[s])));
   const totalScu = $derived(rollups.reduce((a, r) => a + r.agg.scu, 0));
   const totalReward = $derived(rollups.reduce((a, r) => a + (run.state.missionRewards[r.mission] || 0), 0));
+  const totalDone = $derived(rollups.reduce((a, r) => a + r.doneScu, 0));
+  // Value density: reward per SCU — the number that decides whether a haul is worth the time.
+  const rate = (rew: number, scu: number) => (rew > 0 && scu > 0 ? Math.round(rew / scu) : null);
   const order = $derived(rollups.map((r) => r.mission)); // current visible order
 
   // ---- partial-completion planner ----
@@ -109,6 +112,7 @@
         {#each cols as s}<th class="mt-sz">{s}</th>{/each}
         <th class="mt-num">Box</th>
         <th class="mt-rt">Pick→Drop</th>
+        <th class="mt-num" title="Delivered SCU">Done</th>
         <th class="mt-ship">Ship</th>
         <th class="mt-fit">Fit</th>
         <th class="mt-rew">Reward</th>
@@ -117,13 +121,14 @@
     </thead>
     <tbody bind:this={bodyEl}>
       {#if rollups.length === 0}
-        <tr><td colspan={cols.length + (partial ? 10 : 9)} class="mp-empty">Tag cargo lines with a mission #, import a screenshot, or add a blank mission.</td></tr>
+        <tr><td colspan={cols.length + (partial ? 12 : 11)} class="mp-empty">Tag cargo lines with a mission #, import a screenshot, or add a blank mission.</td></tr>
       {/if}
       {#each rollups as r (r.mission)}
         {@const c = missionColor(r.mission)}
         {@const ship = run.state.missionShips[r.mission] || ''}
         {@const row = rowFor(ship)}
         {@const fit = row ? shipFit(row, r.agg.scu, r.maxSize) : null}
+        {@const rr = rate(run.state.missionRewards[r.mission] || 0, r.agg.scu)}
         <tr class="mrow" class:dragging={dragM === r.mission} style="--mc:{c};--mfg:{missionFg(c)}">
           <td class="mt-grip"><span class="mgrip" role="button" tabindex="-1" aria-label="Drag to reorder" title="Drag to reorder" onpointerdown={(e) => startDrag(r.mission, e)}>⠿</span></td>
           <td class="mt-id">{r.mission}</td>
@@ -134,6 +139,9 @@
           {#each cols as s}<td class="mt-sz">{r.agg.totals[s] || ''}</td>{/each}
           <td class="mt-num">{r.agg.crates}{#if r.agg.leftover > 0}<span class="mt-left" title="{r.agg.leftover} unpacked">+{r.agg.leftover}</span>{/if}</td>
           <td class="mt-rt">{r.sources}→{r.dests}</td>
+          <td class="mt-num mt-done" class:all-done={r.agg.scu > 0 && r.doneScu >= r.agg.scu} title="{r.done}/{r.items} lines delivered">
+            {#if r.agg.scu > 0 && r.doneScu >= r.agg.scu}✓{:else if r.doneScu > 0}{r.doneScu.toLocaleString()}{:else}—{/if}
+          </td>
           <td class="mt-ship"><input class="mship-in" list="shipList" placeholder="—" value={ship}
             oninput={(e) => run.setMissionShip(r.mission, e.currentTarget.value)} spellcheck="false" /></td>
           <td class="mt-fit">
@@ -146,6 +154,7 @@
           </td>
           <td class="mt-rew">
             <span class="cur">¤</span><input class="mrew-in" inputmode="numeric" placeholder="—"
+              title={rr != null ? `¤${rr.toLocaleString()}/SCU` : 'Reward (aUEC)'}
               value={run.state.missionRewards[r.mission] ?? ''}
               oninput={(e) => run.setMissionReward(r.mission, Number(e.currentTarget.value.replace(/[.,]/g, '')) || null)} />
           </td>
@@ -160,8 +169,12 @@
           <td class="mt-num strong">{totalScu.toLocaleString()}</td>
           {#if partial}<td class="mt-num mt-tgt strong">{totalTarget.toLocaleString()}</td>{/if}
           {#each cols as _s}<td></td>{/each}
-          <td></td><td></td><td></td><td></td>
-          <td class="mt-rew strong"><span class="cur">¤</span>{(partial ? totalTargetReward : totalReward).toLocaleString()}</td>
+          <td></td><td></td>
+          <td class="mt-num" title="Delivered SCU total">{totalDone > 0 ? totalDone.toLocaleString() : ''}</td>
+          <td></td><td></td>
+          <td class="mt-rew strong" title={rate(totalReward, totalScu) != null ? `avg ¤${rate(totalReward, totalScu)!.toLocaleString()}/SCU` : undefined}>
+            <span class="cur">¤</span>{(partial ? totalTargetReward : totalReward).toLocaleString()}{#if rate(totalReward, totalScu) != null}<span class="rew-rate">¤{rate(totalReward, totalScu)!.toLocaleString()}/SCU</span>{/if}
+          </td>
           <td></td>
         </tr>
       </tfoot>

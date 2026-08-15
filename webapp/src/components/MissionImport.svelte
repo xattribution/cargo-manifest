@@ -23,7 +23,9 @@
   // crop state (fractions 0..1 of the source image)
   let imgUrl = $state('');
   let imgW = 0, imgH = 0;
-  let sel = $state({ x: 0.45, y: 0.06, w: 0.54, h: 0.9 }); // default: right column where objectives sit
+  // Default: the right column where the objectives sit, FULL height — the Reward readout
+  // lives in the top-right header, so starting at y:0 lets the reward auto-fill.
+  let sel = $state({ x: 0.45, y: 0, w: 0.55, h: 1 });
   let cropBoxEl = $state<HTMLDivElement>();
   type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se';
 

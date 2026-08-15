@@ -10,7 +10,9 @@
     "build": "npm run sync-data && vite build",
     "preview": "vite preview --port 8080",
     "check": "npm run sync-data && svelte-check --tsconfig ./tsconfig.json",
-    "fetch-tessdata": "node scripts/fetch-tessdata.mjs"
+    "fetch-tessdata": "node scripts/fetch-tessdata.mjs",
+    "test:parser": "node --experimental-strip-types --no-warnings test/parser-tests.mjs",
+    "test:contrast": "node test/contrast-check.mjs"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",

@@ -68,6 +68,13 @@ export function runTotal(sections: Trip[]): number {
   return aggregate(flatEntries(sections)).scu;
 }
 
+// Delivered progress: total SCU of lines marked done (drop-off complete).
+export function deliveredScu(sections: Trip[]): number {
+  let n = 0;
+  for (const sec of sections) for (const it of sec.items) if (it.done) n += Math.max(0, Math.floor(Number(it.scu) || 0));
+  return n;
+}
+
 export interface TripScu { name: string; scu: number; }
 
 export function tripScus(sections: Trip[]): TripScu[] {

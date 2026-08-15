@@ -1,10 +1,11 @@
 <script lang="ts">
   import { run } from '../stores/run.svelte';
-  import { aggregate, flatEntries, ALL_SIZES } from '../lib/crate';
-  import { summaryText } from '../lib/format';
+  import { aggregate, flatEntries, deliveredScu } from '../lib/crate';
+  import { summaryText, sizeLine } from '../lib/format';
   import Missions from './Missions.svelte';
 
   const agg = $derived(aggregate(flatEntries(run.state.sections)));
+  const delivered = $derived(deliveredScu(run.state.sections));
   const coms = $derived.by(() => {
     const s = new Set<string>();
     for (const sec of run.state.sections) for (const it of sec.items) { const c = (it.commodity || '').trim().toLowerCase(); if (c) s.add(c); }
@@ -29,11 +30,12 @@
     <div class="stat"><div class="v">{agg.crates}</div><div class="k">Crates</div></div>
     <div class="stat"><div class="v">{coms}</div><div class="k">Commodities</div></div>
     <div class="stat"><div class="v">{dests}</div><div class="k">Destinations</div></div>
+    {#if delivered > 0}
+      <div class="stat s-done"><div class="v">{delivered.toLocaleString()}</div><div class="k">Delivered</div></div>
+    {/if}
     <div class="ov-sizes">
-      {#each ALL_SIZES as s}
-        {#if agg.totals[s]}<span class="sz"><b>{agg.totals[s]}</b>×{s}</span>{/if}
-      {/each}
-      {#if agg.leftover > 0}<span class="sz warn"><b>{agg.leftover}</b> unpacked</span>{/if}
+      {#if sizeLine(agg.totals)}<span class="sz-line">{sizeLine(agg.totals)}</span>{/if}
+      {#if agg.leftover > 0}<span class="sz-line sz-warn">{agg.leftover} unpacked</span>{/if}
       <button class="btn ghost sm copy" onclick={copy}>{copied ? 'Copied ✓' : 'Copy summary'}</button>
     </div>
   </div>

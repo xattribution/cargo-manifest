@@ -19,7 +19,12 @@
   const color = $derived(missionColor(item.mission));
   const fg = $derived(missionFg(color));
 
-  function setMission(v: string) { item.mission = Math.max(1, Math.min(10, parseInt(v) || 1)); }
+  function setMission(e: Event & { currentTarget: HTMLInputElement }) {
+    const clamped = Math.max(1, Math.min(10, parseInt(e.currentTarget.value) || 1));
+    item.mission = clamped;
+    // reflect the clamp in the input so an out-of-range entry (e.g. "15") shows what stuck
+    if (e.currentTarget.value !== '' && Number(e.currentTarget.value) !== clamped) e.currentTarget.value = String(clamped);
+  }
 </script>
 
 <tr
@@ -35,7 +40,7 @@
   </td>
   <td class="m-cell">
     <input class="m-num" type="number" min="1" max="10" title="Mission # (1–10) — same number = same color"
-      data-f="mission" data-row={item.id} value={item.mission} oninput={(e) => setMission(e.currentTarget.value)} />
+      data-f="mission" data-row={item.id} value={item.mission} oninput={setMission} />
   </td>
   <td><Field bind:value={item.commodity} list="commodityList" cat="commodities" placeholder="commodity" dataF="commodity" dataRow={item.id} /></td>
   <td><Field bind:value={item.scu} cls="scu" placeholder="0" inputmode="numeric" dataF="scu" dataRow={item.id} /></td>

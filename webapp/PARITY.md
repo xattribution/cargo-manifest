@@ -9,6 +9,149 @@ chronological record of what changed and the reasoning behind each call.
 
 ---
 
+## v0.22 — design-audit pass (AI-slop research applied)
+
+Audited against the 2026 "AI design slop" research corpus (Kadoa/Krebs Show HN audit,
+Impeccable.style, Developers Digest taxonomy, dark-dashboard craft articles). The app
+already avoided the marquee tells by design — no gradients, no glow, square corners,
+tables over cards, layered off-black dark surfaces. Two real findings were fixed, both
+from the report's durable principle: *every visual decision bound to function*.
+
+**1. WCAG AA contrast (the "grey-on-grey below AA" tell) — 12 failing pairs fixed.**
+Worst offender: light-theme SCU numerals at **2.67:1** (the app's most important data).
+New deterministic checker `npm run test:contrast` (`test/contrast-check.mjs`) verifies
+~30 token/surface pairs at ≥4.5:1 and **must stay green when touching color tokens**.
+The token model was restructured to make this hold:
+- **Signal text tokens** (`--cyan/--green/--amber/--red`) are now **theme-split** — darker
+  on manila, lighter on charcoal (colored *text* can't be one value on both).
+- **Solid fill tokens** (`--*-fill`) are constant with verified text-on-fill pairs;
+  `badge.warn` switched to dark ink on amber (white on amber was 3.21:1).
+- **Sidebar accent tokens** (`--side-*`) are pinned dark-surface-safe (the sidebar is
+  dark in both themes and must not follow the workspace split).
+- `--ink-faint`/`--side-faint` (hints, empty states, tiny labels) bumped to ≥4.5:1;
+  `--done-ink` light darkened; size-column table headers use neutral ink (amber can't
+  reach 4.5 on the header band without going muddy — amber stays on the data).
+- Removed dead `--violet/--orange/--steel` tokens.
+
+**2. Decorative edge stripes (the report's "single most recognizable tell") removed;
+semantic bars kept.** Gone: steel top-stripes on the Overview strip and quick-fill rail,
+the cyan modal top-stripe, the cyan bar on the Submit-% note, and the per-card zone-color
+stripe on Pick Up / Drop Off cards. **Kept, deliberately:** the green left bar on the
+optimizer's "deliver N SCU" line (recommendation) and the amber bar on the undo toast
+(caution) — the rule, now in ARCHITECTURE §12: *a colored edge bar is a semantic signal
+(green = recommended, amber = caution), never decoration*.
+
+**Also:** `⚙/☀/⚠` glyphs carry U+FE0E variation selectors so they can never render as
+color emoji (the "emoji as UI" tell) — the app's icon language stays monochrome text
+glyphs. Audited and deliberately KEPT as domain identity, per the research's own caveat:
+manila/paper palette (logistics documents), mono/uppercase micro-labels (SCADA register),
+four distinct zone hues (wayfinding, user-requested), amber-as-cargo-numeral convention,
+and the status dot (it maps to real storage state).
+
+---
+
+## v0.21 — OCR importer accuracy pass (driven by real contract screenshots)
+
+Reviewed against ten real "Senior Rank — Medium Cargo Haul" Covalex screenshots; all are
+transcribed into a new regression suite (see below) and an end-to-end harness runs the real
+Tesseract pipeline on a synthetic render of the same layout.
+
+**Catalog data (the biggest accuracy win):**
+- The Stanton **Lagrange stations were catalogued as bare codes** (`CRU-L4`, `HUR-L5`, …)
+  while contracts use full names ("CRU-L4 Shallow Fields Station"). Worse, full names only
+  existed inside store rows, so "Collect from CRU-L1 Ambitious Dream Station" matched
+  **"Live Fire Weapons (CRU-L1 Ambitious Dream Station)"** — a gun shop — and Lagrange
+  names without a code ("Beautiful Glen Station") matched nothing. All 18 Stanton Lagrange
+  rows now carry their full in-game names (same convention the store rows already used);
+  `Seraphim` → `Seraphim Station` (+ System/Planet filled). Removed a committed OCR-typo
+  duplicate (`ARC-LS Yellow Core Station`) and the `INS-Jericho`/`INS Jericho` dupe.
+
+**Matcher (`match.ts`):**
+- Scores are **no longer clamped to 1.0 before comparison** — a padded sub-location
+  ("Refinery deck store (X Station)") could previously saturate and tie the station itself,
+  leaving the winner to alphabetical accident.
+- **Possessive fragments dropped**: "Crusader's" tokenized into a stray `s` that polluted
+  the Dice overlap; single-character tokens are now filtered.
+- **Code-mismatch penalty softened when words carry the match**: "CRU-LA Shallow Fields
+  Station" (OCR-garbled 4→A) now resolves to CRU-L4 because ≥2 distinctive non-code tokens
+  match exactly. Bare garbled codes with no supporting words (ARC-LS alone vs ARC-L4/L5)
+  still flag novel — the safety property is unchanged.
+
+**Parser (`parseMission.ts`):**
+- `Deliver O/62` (zero read as the letter O) and `0/14I` (letter confusions inside the SCU
+  number) now parse — captured **number** tokens run through a letter→digit fixer
+  (O→0, I/l→1, S→5, B→8, Z→2); never applied to names. Reward numbers get the same
+  treatment (previously `3l8,250` silently parsed as 8,250).
+- **Bullet-glyph junk stripped** from captured fields (`◇` commonly OCRs as `©`/`®`/`•`;
+  it rode into a source name whenever a trailing period was dropped).
+- **`deconflict` no longer lets a short pass shift the vote**: only passes with the same
+  leg count as the anchor vote per-field (a pass that dropped a middle leg had every later
+  leg misaligned, and two such passes could outvote the one complete pass). `reward`/
+  `maxBox` now vote by majority instead of first-non-null (a bad first pass with a dropped
+  digit used to win).
+- **Default crop is now full-height** (`y:0–1`, right 55%): the Reward readout sits in the
+  top-right header, which the old `y:0.06` start could clip — reward now auto-fills with
+  the default box.
+- `vite.config.ts`: `optimizeDeps` **include** (was exclude) `tesseract.js` — the CJS
+  module must be pre-bundled in dev or the dynamic import throws `require is not defined`
+  (production build was always fine; worker/core stay vendored in `public/ocr`).
+
+**Tests (new, first in the repo):**
+- `npm run test:parser` — `test/parser-tests.mjs`, 45 assertions: ten transcribed
+  screenshots (legs/SCU/sources/destinations/reward/box limits), OCR-noise variants, the
+  deconflict alignment + majority cases, and matcher resolution of every location/commodity
+  in the shots against the real CSVs. Plain Node (`--experimental-strip-types`), no deps.
+- `test/ocr-harness.html` + `test/ocr-e2e.mjs` — dev-only end-to-end: renders a synthetic
+  two-column contract (SC-style layout), applies the default crop, runs the real 3-pass
+  Tesseract → parse → deconflict → match pipeline headless. Verified passing.
+
+---
+
+## v0.20 — review pass: de-pill restyle, delivery progress, ¤/SCU, undo, import fix
+
+**Restyle (user direction: no pills / no same-color blobs):**
+- **Chip rows are gone.** Crate breakdowns everywhere are now a single ledger-style mono
+  line (`2×32 · 1×16`): Overview strip (`sizeLine()` replaces the per-size chips),
+  Pick Up / Drop Off cards (`.gsizes` replaces `.gpills`/`.pill`, and now includes the
+  crate count), quick-fill rail entries are a plain ruled list (no boxed chips), the
+  fleet count and importer suggestion count are plain text, the drop-off optimizer note
+  is a green left-bar line (no filled box), and the `◎ pct% route` header readout lost
+  its background bubble. The mission color marker on card lines is a strict 16px square
+  color-code cell. `format.ts` lost `pillList`/`pillClass`, gained `sizeLine`.
+- **Overview stats merged into one ruled ledger strip** (stats divided by hairlines inside
+  a single bordered container) instead of separate floating tiles.
+- **Section palette de-blobbed**: Pick Up was a second near-identical blue; it is now
+  violet (`--c-pickup` light `#5d5180` / dark `#4c4169`) so the four zones read
+  blue / olive / violet / rust at a glance.
+- Fit badges use the mono font, uppercase. Dead placeholder CSS selector removed.
+
+**New functionality:**
+- **Delivery progress**: sidebar gets a delivered/total SCU meter (appears once anything
+  is checked off); Overview gets a green **Delivered** stat; the Missions table gets a
+  **Done** column (delivered SCU, ✓ when complete; footer totals it); Copy Summary
+  includes a `Delivered: X/Y SCU` line. New `crate.ts → deliveredScu()`,
+  `missionRollups` gains `doneScu`.
+- **¤/SCU value density**: the Missions footer shows the average reward-per-SCU next to
+  the total; each reward input's tooltip shows that mission's rate.
+- **One-level undo** for destructive ops: deleting a mission, clearing all missions, and
+  removing a non-empty trip snapshot the run first and raise a bottom toast
+  ("Mission 3 deleted — Undo", auto-dismisses after 10s). Transient, not persisted.
+  `run.undoInfo` / `undoRestore()` / `dismissUndo()`.
+
+**Fixes:**
+- **Importer mission numbering is now global**: `addImportedLegs` previously only
+  considered mission #s used on the target trip, so importing could silently reuse a
+  number active on another trip and merge colors/reward/metadata. It now picks the
+  lowest number free across every trip + `missionOrder`.
+- Undefined CSS tokens fixed (`--txt-faint` → `--ink-faint`, `--amber-soft` → `--amber`);
+  undefined `btn warn` → `btn danger` (ship grid editor).
+- Missions empty-state `colspan` corrected (was one column short).
+- Mission-# input now reflects the 1–10 clamp immediately (typing "15" shows 10).
+- Quick-fill clipboard write no longer leaves an unhandled promise rejection.
+- `+ Add Trip` picks the first unused letter (removals no longer cause duplicate names).
+
+---
+
 ## v0.19 — collapsible sidebar + mission delete UX
 
 - **Desktop sidebar collapse**: `«` in the sidebar brand tucks it away (workspace goes
